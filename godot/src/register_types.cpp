@@ -5,7 +5,6 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
-#include "example_class.h"
 #include "player/playerChar.h"
 #include "player/playerController.h"
 #include "projectiles/projectile.h"

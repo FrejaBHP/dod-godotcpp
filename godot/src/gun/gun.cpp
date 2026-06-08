@@ -94,12 +94,16 @@ bool Gun::TryReload() {
 	}
 }
 
+// When there is enough ammo for a full reload
 void Gun::Reload() {
+	int32_t prevAmmo = MagAmmo;
+
 	MagAmmo = MagSize;
-	ReserveAmmo -= MagSize;
+	ReserveAmmo -= (MagSize - prevAmmo);
 	OwningPlayer->GetController()->UpdateAmmoLabel();
 }
 
+// When there is less than a magazine left of reserve ammo
 void Gun::PartialReload() {
 	MagAmmo = ReserveAmmo;
 	ReserveAmmo = 0;
