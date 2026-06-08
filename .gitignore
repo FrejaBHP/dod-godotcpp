@@ -1,1 +1,2 @@
-src/gen
+/godot/src/gen
+*.obj
