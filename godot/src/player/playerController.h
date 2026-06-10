@@ -2,6 +2,7 @@
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/node2d.hpp>
+#include <godot_cpp/classes/area2d.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/camera2d.hpp>
 #include <godot_cpp/classes/input_event.hpp>
@@ -36,11 +37,13 @@ public:
 protected:
 	static void _bind_methods();
 	void DebugSpawnGun(int32_t type);
+	void PickupAreaEntered(Area2D* area);
 
 	Player* ControlledPlayer = nullptr;
 	Node2D* PlayerCrosshair = nullptr;
 	Label* DebugLabel = nullptr;
 	Camera2D* PlayerCamera = nullptr;
+	Area2D* PickupRadius = nullptr;
 
 	// Temp
 	Label* AmmoLabel = nullptr;

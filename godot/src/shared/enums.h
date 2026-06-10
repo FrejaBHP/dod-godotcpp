@@ -43,28 +43,34 @@ enum class EManufacturer {
 
 enum class EGunType {
 	None,
+	Pistol,
+	Revolver,
+	SMG,
+	Rifle,
+	Shotgun,
+	Sniper,
+	Launcher
+};
+
+enum class EGunSubType {
+	None,
 
 	// Pistols
-	PistolRepeater,
-	PistolMachine,
-	PistolRevolver,
-
-	SMG,
+	Repeater,
+	MachinePistol,
 
 	// Rifles
-	RifleAssault,
-	RifleMG,
+	AssaultRifle,
+	MachineGun,
 
 	// Shotguns
-	ShotgunCombat,
-	ShotgunAssault,
-	ShotgunDouble,
+	CombatShotgun,
+	AssaultShotgun,
+	DoubleBarrel,
 
 	// Snipers
 	SniperSemiAuto,
 	SniperBoltAction,
-
-	Launcher
 };
 
 enum class EGunRarity {

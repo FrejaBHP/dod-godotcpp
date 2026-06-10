@@ -78,7 +78,7 @@ void Gun::PrimaryFire() {
 bool Gun::TryReload() {
 	// Dirty hacky stuff
 	int32_t reserveAmmo;
-	if (GunDef->GunType == EGunType::PistolRepeater) {
+	if (GunDef->GunType == EGunType::Pistol) {
 		reserveAmmo = OwningPlayer->PistolAmmo;
 	}
 	else if (GunDef->GunType == EGunType::SMG) {
@@ -106,7 +106,7 @@ bool Gun::TryReload() {
 void Gun::Reload() {
 	// Dirty hacky stuff
 	int32_t* reserveAmmo;
-	if (GunDef->GunType == EGunType::PistolRepeater) {
+	if (GunDef->GunType == EGunType::Pistol) {
 		reserveAmmo = &OwningPlayer->PistolAmmo;
 	}
 	else if (GunDef->GunType == EGunType::SMG) {

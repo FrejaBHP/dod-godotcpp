@@ -12,6 +12,7 @@
 #include "player/playerChar.h"
 #include "gun/gun.h"
 #include "gun/gunDropped.h"
+#include "shared/utility.h"
 
 using namespace godot;
 using namespace std::chrono;
@@ -24,6 +25,7 @@ void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("SetCurrentGunSlot"), &PlayerController::SetCurrentGunSlot);
 	ClassDB::bind_method(D_METHOD("UpdateAmmoLabel"), &PlayerController::UpdateAmmoLabel);
 	ClassDB::bind_method(D_METHOD("DebugSpawnGun"), &PlayerController::DebugSpawnGun);
+	ClassDB::bind_method(D_METHOD("PickupAreaEntered"), &PlayerController::PickupAreaEntered);
 }
 
 PlayerController::PlayerController() {
@@ -177,6 +179,12 @@ void PlayerController::SetPlayer(Player* player) {
 	if (ammoLabel) {
 		AmmoLabel = ammoLabel;
 	}
+
+	Area2D* pickupRadius = player->get_node<Area2D>("PickupRadius");
+	if (pickupRadius) {
+		PickupRadius = pickupRadius;
+		PickupRadius->connect("area_entered", callable_mp(this, &PlayerController::PickupAreaEntered), CONNECT_DEFERRED);
+	}
 }
 
 Player* PlayerController::GetPlayer() const {
@@ -200,7 +208,7 @@ void PlayerController::UpdateAmmoLabel() {
 	}
 
 	int32_t ammo;
-	if (ControlledPlayer->GetCurrentGun()->GunDef->GunType == EGunType::PistolRepeater) {
+	if (ControlledPlayer->GetCurrentGun()->GunDef->GunType == EGunType::Pistol) {
 		ammo = ControlledPlayer->PistolAmmo;
 	}
 	else if (ControlledPlayer->GetCurrentGun()->GunDef->GunType == EGunType::SMG) {
@@ -214,4 +222,20 @@ void PlayerController::UpdateAmmoLabel() {
 	sprintf(ammoBuffer, "%d / %d", ControlledPlayer->GetCurrentGun()->MagAmmo, ammo);
 
 	AmmoLabel->set_text(ammoBuffer);
+}
+
+void PlayerController::PickupAreaEntered(Area2D* area) {
+	Node* parent = area->get_parent();
+
+	if (parent) {
+		if (parent->is_in_group("GunDropped")) {
+			GunDropped* dGun = static_cast<GunDropped*>(parent);
+
+			std::string type = GetGunTypeName(dGun->GunDef->GunType);
+			print_line(type.c_str());
+
+			std::string sub = GetGunSubTypeName(dGun->GunDef->GunSubType);
+			print_line(sub.c_str());
+		}
+	}
 }

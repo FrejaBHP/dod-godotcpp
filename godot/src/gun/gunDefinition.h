@@ -16,12 +16,23 @@ public:
 
 	EManufacturer Manufacturer { EManufacturer::Placeholder };
 	EGunType GunType { EGunType::None };
+	EGunSubType GunSubType { EGunSubType::None };
+
+	double BaseDamage { 0 };
+	int32_t BaseProjectileCount { 1 };
+	int32_t BaseShotCost { 1 };
+	double BaseFireTime { 1 };
+	int32_t BaseMagSize { 0 };
+	double BaseReloadTime { 0 };
+
 	double Damage { 0 };
 	int32_t ProjectileCount { 1 };
 	int32_t ShotCost { 1 };
 	double FireTime { 1 };
 	int32_t MagSize { 0 };
 	double ReloadTime { 0 };
+
+	int32_t Rarity { 0 };
 
 	// Metadata
 	int32_t MagAmmo { 0 };
