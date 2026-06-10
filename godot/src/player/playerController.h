@@ -14,8 +14,24 @@ class Gun;
 class PlayerController : public Node {
 	GDCLASS(PlayerController, Node)
 
-private:
+public:
+	PlayerController();
+	~PlayerController() = default;
 
+	void _input(const Ref<InputEvent>& p_event) override;
+	void _ready() override;
+	void _process(double delta) override;
+	void _physics_process(double delta) override;
+
+	Vector2 ProcessMovementInput();
+
+	void SetPlayer(Player* player);
+	Player* GetPlayer() const;
+
+	Node2D* GetCrosshair();
+
+	void SetCurrentGunSlot(int32_t slot);
+	void UpdateAmmoLabel();
 
 protected:
 	static void _bind_methods();
@@ -33,22 +49,6 @@ protected:
 
 	int32_t CurrentGunSlot { 0 };
 
-public:
-	PlayerController();
-	~PlayerController() = default;
+private:
 
-	void _input(const Ref<InputEvent>& p_event) override;
-	void _ready() override;
-	void _process(double delta) override;
-	void _physics_process(double delta) override;
-
-	Vector2 ProcessMovementInput();
-
-	void SetPlayer(Player* player);
-	Player* GetPlayer() const;
-
-	Node2D* GetCrosshair();
-	
-	void SetCurrentGunSlot(int32_t slot);
-	void UpdateAmmoLabel();
 };

@@ -12,18 +12,6 @@ constexpr int32_t PlayerNumGunSlots = 3;
 class Player : public CharacterBody2D {
 	GDCLASS(Player, CharacterBody2D)
 
-private:
-	
-protected:
-	static void _bind_methods();
-
-	PlayerController* Controller = nullptr;
-
-	Gun* GunSlots[PlayerNumGunSlots];
-	Gun* CurrentGun = nullptr;
-
-	float MaxSpeed;
-
 public:
 	Player();
 	~Player() = default;
@@ -45,4 +33,20 @@ public:
 	Gun* GetCurrentGun();
 
 	void SwitchToGunInSlot(int32_t slot);
+
+	int32_t PistolAmmo { 48 };
+	int32_t SMGAmmo { 192 };
+	
+protected:
+	static void _bind_methods();
+
+	PlayerController* Controller = nullptr;
+
+	Gun* GunSlots[PlayerNumGunSlots];
+	Gun* CurrentGun = nullptr;
+
+	float MaxSpeed;
+
+private:
+
 };

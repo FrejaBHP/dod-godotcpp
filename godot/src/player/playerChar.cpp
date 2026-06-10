@@ -37,9 +37,19 @@ void Player::_ready() {
 	}
 
 	for (size_t i = 0; i < PlayerNumGunSlots; i++) {
+		std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
+
+		if (i == 1) {
+			gundef->SetSMGStats();
+		}
+		else {
+			gundef->SetPistolStats();
+		}
+
 		Gun* newGun = memnew(Gun);
 
 		if (newGun) {
+			newGun->BuildGun(gundef);
 			add_child(newGun);
 			SetGunInSlot(i, newGun);
 		}

@@ -14,7 +14,6 @@ void Gun::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("PrimaryFire"), &Gun::PrimaryFire);
 	ClassDB::bind_method(D_METHOD("TryReload"), &Gun::TryReload);
 	ClassDB::bind_method(D_METHOD("Reload"), &Gun::Reload);
-	ClassDB::bind_method(D_METHOD("PartialReload"), &Gun::PartialReload);
 }
 
 Gun::Gun() {
@@ -26,12 +25,6 @@ void Gun::_ready() {
 
 	ResourceLoader* loader = ResourceLoader::get_singleton();
 	ProjectileScene = loader->load("res://projectile.tscn");
-
-	MagSize = 8;
-	MagAmmo = MagSize;
-
-	MaxAmmo = 32;
-	ReserveAmmo = MaxAmmo;
 }
 
 void Gun::_process(double delta) {
@@ -42,6 +35,12 @@ void Gun::_physics_process(double delta) {
 
 }
 
+void Gun::BuildGun(std::shared_ptr<GunDefinition> gundef) {
+	GunDef = gundef;
+	MagAmmo = GunDef->MagSize;
+}
+
+
 bool Gun::TryPrimaryFire() {
 	if (MagAmmo < 1) {
 		return false;
@@ -51,7 +50,7 @@ bool Gun::TryPrimaryFire() {
 
 	long long difference = duration_cast<milliseconds>(now - LastFired).count();
 
-	if (difference > 100) {
+	if (difference > GunDef->FireTime) {
 		PrimaryFire();
 		LastFired = now;
 		return true;
@@ -77,16 +76,22 @@ void Gun::PrimaryFire() {
 }
 
 bool Gun::TryReload() {
-	if (MagAmmo == MagSize) {
+	// Dirty hacky stuff
+	int32_t reserveAmmo;
+	if (GunDef->GunType == EGunType::PistolRepeater) {
+		reserveAmmo = OwningPlayer->PistolAmmo;
+	}
+	else {
+		reserveAmmo = OwningPlayer->SMGAmmo;
+	}
+
+
+	if (MagAmmo == GunDef->MagSize) {
 		return false;
 	}
 
-	if (ReserveAmmo >= MagSize) {
+	if (reserveAmmo > 0) {
 		Reload();
-		return true;
-	}
-	else if (ReserveAmmo > 0) {
-		PartialReload();
 		return true;
 	}
 	else {
@@ -94,18 +99,29 @@ bool Gun::TryReload() {
 	}
 }
 
-// When there is enough ammo for a full reload
+
 void Gun::Reload() {
-	int32_t prevAmmo = MagAmmo;
+	// Dirty hacky stuff
+	int32_t* reserveAmmo;
+	if (GunDef->GunType == EGunType::PistolRepeater) {
+		reserveAmmo = &OwningPlayer->PistolAmmo;
+	}
+	else {
+		reserveAmmo = &OwningPlayer->SMGAmmo;
+	}
 
-	MagAmmo = MagSize;
-	ReserveAmmo -= (MagSize - prevAmmo);
-	OwningPlayer->GetController()->UpdateAmmoLabel();
-}
+	// When there is enough ammo for a full reload
+	if (*reserveAmmo >= GunDef->MagSize) {
+		int32_t prevAmmo = MagAmmo;
 
-// When there is less than a magazine left of reserve ammo
-void Gun::PartialReload() {
-	MagAmmo = ReserveAmmo;
-	ReserveAmmo = 0;
+		MagAmmo = GunDef->MagSize;
+		*reserveAmmo -= (GunDef->MagSize - prevAmmo);
+	}
+	// When there is less than a magazine left of reserve ammo
+	else if (*reserveAmmo > 0) {
+		MagAmmo = *reserveAmmo;
+		*reserveAmmo = 0;
+	}
+
 	OwningPlayer->GetController()->UpdateAmmoLabel();
 }

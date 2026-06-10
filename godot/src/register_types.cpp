@@ -5,10 +5,12 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "world.h"
 #include "player/playerChar.h"
 #include "player/playerController.h"
 #include "projectiles/projectile.h"
 #include "gun/gun.h"
+#include "gun/gunDropped.h"
 
 using namespace godot;
 
@@ -17,12 +19,15 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level) {
 		return;
 	}
 
+	GDREGISTER_RUNTIME_CLASS(World);
+
 	GDREGISTER_RUNTIME_CLASS(Player);
 	GDREGISTER_RUNTIME_CLASS(PlayerController);
 
 	GDREGISTER_RUNTIME_CLASS(Projectile);
 
 	GDREGISTER_RUNTIME_CLASS(Gun);
+	GDREGISTER_RUNTIME_CLASS(GunDropped);
 }
 
 void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {

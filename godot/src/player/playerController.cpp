@@ -58,6 +58,19 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 				ControlledPlayer->GetCurrentGun()->TryReload();
 			}
 		}
+
+		if (p_event.ptr()->is_action_pressed("debug0")) {
+
+		}
+		if (p_event.ptr()->is_action_pressed("debug1")) {
+			for (size_t i = 0; i < PlayerNumGunSlots; i++) {
+				Gun* gun = GetPlayer()->GetGunInSlot(i);
+
+				if (gun) {
+					print_line(gun->GunDef.use_count());
+				}
+			}
+		}
 	}
 }
 
@@ -137,8 +150,16 @@ void PlayerController::UpdateAmmoLabel() {
 		return;
 	}
 
+	int32_t ammo;
+	if (ControlledPlayer->GetCurrentGun()->GunDef->GunType == EGunType::PistolRepeater) {
+		ammo = ControlledPlayer->PistolAmmo;
+	}
+	else {
+		ammo = ControlledPlayer->SMGAmmo;
+	}
+
 	char ammoBuffer[32];
-	sprintf(ammoBuffer, "%d / %d", ControlledPlayer->GetCurrentGun()->MagAmmo, ControlledPlayer->GetCurrentGun()->ReserveAmmo);
+	sprintf(ammoBuffer, "%d / %d", ControlledPlayer->GetCurrentGun()->MagAmmo, ammo);
 
 	AmmoLabel->set_text(ammoBuffer);
 }

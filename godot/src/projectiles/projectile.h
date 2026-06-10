@@ -8,8 +8,12 @@ using namespace godot;
 class Projectile : public Area2D {
 	GDCLASS(Projectile, Area2D)
 
-private:
+public:
+	Projectile();
+	~Projectile() = default;
 
+	void _ready() override;
+	void _physics_process(double delta) override;
 
 protected:
 	static void _bind_methods();
@@ -19,10 +23,6 @@ protected:
 	Timer* LifeTimer = nullptr;
 	float Speed;
 
-public:
-	Projectile();
-	~Projectile() = default;
+private:
 
-	void _ready() override;
-	void _physics_process(double delta) override;
 };
