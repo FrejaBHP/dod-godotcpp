@@ -12,6 +12,7 @@ public:
 
 	void SetPistolStats();
 	void SetSMGStats();
+	void SetARStats();
 
 	EManufacturer Manufacturer { EManufacturer::Placeholder };
 	EGunType GunType { EGunType::None };

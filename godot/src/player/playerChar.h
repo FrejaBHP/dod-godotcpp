@@ -36,6 +36,7 @@ public:
 
 	int32_t PistolAmmo { 48 };
 	int32_t SMGAmmo { 192 };
+	int32_t ARAmmo { 120 };
 	
 protected:
 	static void _bind_methods();

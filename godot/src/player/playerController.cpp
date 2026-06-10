@@ -3,9 +3,15 @@
 #include <godot_cpp/classes/input_map.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 
+// temp
+#include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
+#include <godot_cpp/classes/window.hpp>
+
 #include "player/playerController.h"
 #include "player/playerChar.h"
 #include "gun/gun.h"
+#include "gun/gunDropped.h"
 
 using namespace godot;
 using namespace std::chrono;
@@ -17,6 +23,7 @@ void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("GetCrosshair"), &PlayerController::GetCrosshair);
 	ClassDB::bind_method(D_METHOD("SetCurrentGunSlot"), &PlayerController::SetCurrentGunSlot);
 	ClassDB::bind_method(D_METHOD("UpdateAmmoLabel"), &PlayerController::UpdateAmmoLabel);
+	ClassDB::bind_method(D_METHOD("DebugSpawnGun"), &PlayerController::DebugSpawnGun);
 }
 
 PlayerController::PlayerController() {
@@ -62,6 +69,7 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 		if (p_event.ptr()->is_action_pressed("debug0")) {
 
 		}
+
 		if (p_event.ptr()->is_action_pressed("debug1")) {
 			for (size_t i = 0; i < PlayerNumGunSlots; i++) {
 				Gun* gun = GetPlayer()->GetGunInSlot(i);
@@ -70,6 +78,47 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 					print_line(gun->GunDef.use_count());
 				}
 			}
+		}
+
+		if (p_event.ptr()->is_action_pressed("debug4")) {
+			DebugSpawnGun(0);
+		}
+
+		if (p_event.ptr()->is_action_pressed("debug5")) {
+			DebugSpawnGun(1);
+		}
+
+		if (p_event.ptr()->is_action_pressed("debug6")) {
+			DebugSpawnGun(2);
+		}
+	}
+}
+
+void PlayerController::DebugSpawnGun(int32_t type) {
+	std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
+
+	if (type == 0) {
+		gundef->SetPistolStats();
+	}
+	else if (type == 1) {
+		gundef->SetSMGStats();
+	}
+	else {
+		gundef->SetARStats();
+	}
+
+	ResourceLoader* loader = ResourceLoader::get_singleton();
+	Ref<PackedScene> droppedScene = loader->load("res://gun_dropped.tscn");
+
+	if (droppedScene->can_instantiate()) {
+		Node2D* world = get_tree()->get_root()->get_node<Node2D>("World");
+
+		if (world) {
+			GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
+			world->add_child(dGun);
+			dGun->SetupDroppedGun(gundef);
+
+			dGun->set_global_position(GetPlayer()->get_global_position());
 		}
 	}
 }
@@ -154,8 +203,11 @@ void PlayerController::UpdateAmmoLabel() {
 	if (ControlledPlayer->GetCurrentGun()->GunDef->GunType == EGunType::PistolRepeater) {
 		ammo = ControlledPlayer->PistolAmmo;
 	}
-	else {
+	else if (ControlledPlayer->GetCurrentGun()->GunDef->GunType == EGunType::SMG) {
 		ammo = ControlledPlayer->SMGAmmo;
+	}
+	else {
+		ammo = ControlledPlayer->ARAmmo;
 	}
 
 	char ammoBuffer[32];

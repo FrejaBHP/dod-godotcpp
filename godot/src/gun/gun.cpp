@@ -81,8 +81,11 @@ bool Gun::TryReload() {
 	if (GunDef->GunType == EGunType::PistolRepeater) {
 		reserveAmmo = OwningPlayer->PistolAmmo;
 	}
-	else {
+	else if (GunDef->GunType == EGunType::SMG) {
 		reserveAmmo = OwningPlayer->SMGAmmo;
+	}
+	else {
+		reserveAmmo = OwningPlayer->ARAmmo;
 	}
 
 
@@ -106,8 +109,11 @@ void Gun::Reload() {
 	if (GunDef->GunType == EGunType::PistolRepeater) {
 		reserveAmmo = &OwningPlayer->PistolAmmo;
 	}
-	else {
+	else if (GunDef->GunType == EGunType::SMG) {
 		reserveAmmo = &OwningPlayer->SMGAmmo;
+	}
+	else {
+		reserveAmmo = &OwningPlayer->ARAmmo;
 	}
 
 	// When there is enough ammo for a full reload

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <godot_cpp/classes/node2d.hpp>
+#include <godot_cpp/classes/sprite2d.hpp>
 #include "gun/gunDefinition.h"
 
 using namespace godot;
@@ -15,7 +16,11 @@ public:
 	void _ready() override;
 	void _physics_process(double delta) override;
 
-	GunDefinition* GunDef = nullptr;
+	virtual void SetupDroppedGun(std::shared_ptr<GunDefinition> gundef);
+
+	std::shared_ptr<GunDefinition> GunDef = nullptr;
+
+	Sprite2D* Sprite = nullptr;
 
 protected:
 	static void _bind_methods();

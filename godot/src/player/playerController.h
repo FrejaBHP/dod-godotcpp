@@ -35,6 +35,7 @@ public:
 
 protected:
 	static void _bind_methods();
+	void DebugSpawnGun(int32_t type);
 
 	Player* ControlledPlayer = nullptr;
 	Node2D* PlayerCrosshair = nullptr;
