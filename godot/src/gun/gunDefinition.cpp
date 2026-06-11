@@ -12,6 +12,8 @@ void GunDefinition::SetPistolStats() {
 	FireTime = 330;
 	MagSize = 8;
 	ReloadTime = 0.8;
+
+	MetaMagAmmo = MagSize;
 }
 
 void GunDefinition::SetSMGStats() {
@@ -20,6 +22,8 @@ void GunDefinition::SetSMGStats() {
 	FireTime = 80;
 	MagSize = 32;
 	ReloadTime = 1.5;
+
+	MetaMagAmmo = MagSize;
 }
 
 void GunDefinition::SetARStats() {
@@ -28,6 +32,8 @@ void GunDefinition::SetARStats() {
 	FireTime = 150;
 	MagSize = 20;
 	ReloadTime = 2;
+
+	MetaMagAmmo = MagSize;
 }
 
 GunDefinition::~GunDefinition() {

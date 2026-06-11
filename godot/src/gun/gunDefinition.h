@@ -17,6 +17,7 @@ public:
 	EManufacturer Manufacturer { EManufacturer::Placeholder };
 	EGunType GunType { EGunType::None };
 	EGunSubType GunSubType { EGunSubType::None };
+	EGunRarity GunRarity { EGunRarity::Common };
 
 	double BaseDamage { 0 };
 	int32_t BaseProjectileCount { 1 };
@@ -32,10 +33,10 @@ public:
 	int32_t MagSize { 0 };
 	double ReloadTime { 0 };
 
-	int32_t Rarity { 0 };
+	int32_t RarityScore { 0 };
 
 	// Metadata
-	int32_t MagAmmo { 0 };
+	int32_t MetaMagAmmo { 0 };
 
 protected:
 

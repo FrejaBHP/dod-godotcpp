@@ -8,8 +8,11 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/window.hpp>
 
+//#include <godot_cpp/variant/utility_functions.hpp>
+
 #include "player/playerController.h"
 #include "player/playerChar.h"
+#include "gameInstance.h"
 #include "gun/gun.h"
 #include "gun/gunDropped.h"
 #include "shared/utility.h"
@@ -23,9 +26,12 @@ void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("GetPlayer"), &PlayerController::GetPlayer);
 	ClassDB::bind_method(D_METHOD("GetCrosshair"), &PlayerController::GetCrosshair);
 	ClassDB::bind_method(D_METHOD("SetCurrentGunSlot"), &PlayerController::SetCurrentGunSlot);
+	ClassDB::bind_method(D_METHOD("GetCurrentGunSlot"), &PlayerController::GetCurrentGunSlot);
 	ClassDB::bind_method(D_METHOD("UpdateAmmoLabel"), &PlayerController::UpdateAmmoLabel);
-	ClassDB::bind_method(D_METHOD("DebugSpawnGun"), &PlayerController::DebugSpawnGun);
 	ClassDB::bind_method(D_METHOD("PickupAreaEntered"), &PlayerController::PickupAreaEntered);
+	ClassDB::bind_method(D_METHOD("PickupAreaExited"), &PlayerController::PickupAreaExited);
+	ClassDB::bind_method(D_METHOD("Interact"), &PlayerController::Interact);
+	ClassDB::bind_method(D_METHOD("SwapGunOnGround"), &PlayerController::SwapGunOnGround);
 }
 
 PlayerController::PlayerController() {
@@ -68,6 +74,10 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 			}
 		}
 
+		if (p_event.ptr()->is_action_pressed("interact")) {
+			Interact();
+		}
+
 		if (p_event.ptr()->is_action_pressed("debug0")) {
 
 		}
@@ -83,44 +93,15 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug4")) {
-			DebugSpawnGun(0);
+			GameInstance::GetInstance().DebugSpawnGun(0);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug5")) {
-			DebugSpawnGun(1);
+			GameInstance::GetInstance().DebugSpawnGun(1);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug6")) {
-			DebugSpawnGun(2);
-		}
-	}
-}
-
-void PlayerController::DebugSpawnGun(int32_t type) {
-	std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
-
-	if (type == 0) {
-		gundef->SetPistolStats();
-	}
-	else if (type == 1) {
-		gundef->SetSMGStats();
-	}
-	else {
-		gundef->SetARStats();
-	}
-
-	ResourceLoader* loader = ResourceLoader::get_singleton();
-	Ref<PackedScene> droppedScene = loader->load("res://gun_dropped.tscn");
-
-	if (droppedScene->can_instantiate()) {
-		Node2D* world = get_tree()->get_root()->get_node<Node2D>("World");
-
-		if (world) {
-			GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
-			world->add_child(dGun);
-			dGun->SetupDroppedGun(gundef);
-
-			dGun->set_global_position(GetPlayer()->get_global_position());
+			GameInstance::GetInstance().DebugSpawnGun(2);
 		}
 	}
 }
@@ -149,12 +130,30 @@ void PlayerController::_physics_process(double delta) {
 				currentGun->TryPrimaryFire();
 			}
 		}
+
+		if (DroppedGunInFocus) {
+			std::string focus = GetGunTypeName(DroppedGunInFocus->GunDef->GunType) + " : " + GetGunSubTypeName(DroppedGunInFocus->GunDef->GunSubType);
+			DebugLabel->set_text(focus.c_str());
+		}
+		else {
+			DebugLabel->set_text("None");
+		}
 	}
 }
 
 Vector2 PlayerController::ProcessMovementInput() {
 	Vector2 movementInput = Input::get_singleton()->get_vector("move_left", "move_right", "move_up", "move_down");
 	return movementInput;
+}
+
+void PlayerController::Interact() {
+	if (DroppedGunInFocus && DroppedGunInFocus->CanBePickedUp) {
+		Gun* curGun = GetPlayer()->GetCurrentGun();
+
+		if (curGun) {
+			SwapGunOnGround();
+		}
+	}
 }
 
 void PlayerController::SetPlayer(Player* player) {
@@ -183,20 +182,51 @@ void PlayerController::SetPlayer(Player* player) {
 	Area2D* pickupRadius = player->get_node<Area2D>("PickupRadius");
 	if (pickupRadius) {
 		PickupRadius = pickupRadius;
-		PickupRadius->connect("area_entered", callable_mp(this, &PlayerController::PickupAreaEntered), CONNECT_DEFERRED);
+
+		// Note to self: Du kan spare 2 timer i fremtiden ved ikke at sætte CALLABLE_DEFERRED og skabe interne race conditions
+		PickupRadius->connect("area_entered", callable_mp(this, &PlayerController::PickupAreaEntered));
+		PickupRadius->connect("area_exited", callable_mp(this, &PlayerController::PickupAreaExited));
 	}
+
+	GameInstance::GetInstance().RegisterPlayer(ControlledPlayer);
 }
 
 Player* PlayerController::GetPlayer() const {
 	return ControlledPlayer;
 }
 
-Node2D* PlayerController::GetCrosshair() {
+Node2D* PlayerController::GetCrosshair() const {
 	return PlayerCrosshair;
 }
 
 void PlayerController::SetCurrentGunSlot(int32_t slot) {
 	CurrentGunSlot = slot;
+	UpdateAmmoLabel();
+}
+
+int32_t PlayerController::GetCurrentGunSlot() const {
+	return CurrentGunSlot;
+}
+
+void PlayerController::SwapGunOnGround() {
+	DroppedGunInFocus->CanBePickedUp = false;
+	DroppedGunInFocus->PickupArea->set_monitorable(false);
+
+	// Presence tested before this is called, so we can probably assume it exists, barring immeasurably tiny time differences create a gap
+	Gun* oldGun = GetPlayer()->GetCurrentGun();
+
+	// Pick up new gun
+	Gun* newGun = GameInstance::GetInstance().CopyDroppedGunToEquip(DroppedGunInFocus);
+	DroppedGunInFocus->queue_free();
+	DroppedGunInFocus = nullptr;
+
+	ControlledPlayer->SetGunInSlot(GetCurrentGunSlot(), newGun);
+	ControlledPlayer->SwitchToGunInSlot(GetCurrentGunSlot());
+
+	// Drop gun and clean up gun instance
+	GameInstance::GetInstance().CopyEquippedGunToDrop(oldGun, GetPlayer()->get_global_position());
+	oldGun->queue_free();
+
 	UpdateAmmoLabel();
 }
 
@@ -227,15 +257,47 @@ void PlayerController::UpdateAmmoLabel() {
 void PlayerController::PickupAreaEntered(Area2D* area) {
 	Node* parent = area->get_parent();
 
-	if (parent) {
-		if (parent->is_in_group("GunDropped")) {
-			GunDropped* dGun = static_cast<GunDropped*>(parent);
+	if (parent && parent->is_in_group("GunDropped")) {
+		GunDropped* dGun = static_cast<GunDropped*>(parent);
 
-			std::string type = GetGunTypeName(dGun->GunDef->GunType);
-			print_line(type.c_str());
+		//std::string type = GetGunTypeName(dGun->GunDef->GunType) + " : " + GetGunSubTypeName(dGun->GunDef->GunSubType);
+		//print_line(type.c_str());
 
-			std::string sub = GetGunSubTypeName(dGun->GunDef->GunSubType);
-			print_line(sub.c_str());
+		DroppedGunInFocus = dGun;
+	}
+}
+
+void PlayerController::PickupAreaExited(Area2D* area) {
+	Node* parent = area->get_parent();
+
+	if (parent && parent->is_in_group("GunDropped")) {
+		GunDropped* dGun = static_cast<GunDropped*>(parent);
+
+		if (dGun == DroppedGunInFocus) {
+			TypedArray<Area2D> overlaps = PickupRadius->get_overlapping_areas();
+
+			if (overlaps.size() == 0) {
+				DroppedGunInFocus = nullptr;
+			}
+			else {
+				float shortestDist = 100.f;
+				int32_t shortestIndex = 0;
+
+				for (size_t i = 0; i < overlaps.size(); i++) {
+					// static_cast virker overhovedet ikke til Variant-typer >.>
+					Area2D* element = Object::cast_to<Area2D>(overlaps[i]);
+
+					float dist = ControlledPlayer->get_global_position().distance_squared_to(element->get_global_position());
+					if (shortestDist > dist) {
+						shortestDist = dist;
+						shortestIndex = i;
+					}
+				}
+
+				Area2D* closest = Object::cast_to<Area2D>(overlaps[shortestIndex]);
+				GunDropped* newFocus = static_cast<GunDropped*>(closest->get_parent());
+				DroppedGunInFocus = newFocus;
+			}
 		}
 	}
 }

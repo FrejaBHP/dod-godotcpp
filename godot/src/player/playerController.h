@@ -11,6 +11,7 @@ using namespace godot;
 
 class Player;
 class Gun;
+class GunDropped;
 
 class PlayerController : public Node {
 	GDCLASS(PlayerController, Node)
@@ -29,21 +30,26 @@ public:
 	void SetPlayer(Player* player);
 	Player* GetPlayer() const;
 
-	Node2D* GetCrosshair();
+	Node2D* GetCrosshair() const;
 
 	void SetCurrentGunSlot(int32_t slot);
+	int32_t GetCurrentGunSlot() const;
 	void UpdateAmmoLabel();
 
 protected:
 	static void _bind_methods();
-	void DebugSpawnGun(int32_t type);
 	void PickupAreaEntered(Area2D* area);
+	void PickupAreaExited(Area2D* area);
+	void Interact();
+	void SwapGunOnGround();
 
 	Player* ControlledPlayer = nullptr;
 	Node2D* PlayerCrosshair = nullptr;
 	Label* DebugLabel = nullptr;
 	Camera2D* PlayerCamera = nullptr;
 	Area2D* PickupRadius = nullptr;
+
+	GunDropped* DroppedGunInFocus = nullptr;
 
 	// Temp
 	Label* AmmoLabel = nullptr;

@@ -17,6 +17,8 @@ void GunDropped::_ready() {
 	Sprite = get_node<Sprite2D>("GunSprite");
 	PickupArea = get_node<Area2D>("PickupArea");
 
+	CanBePickedUp = true;
+
 	add_to_group("GunDropped");
 
 	//PickupArea->connect("body_entered", callable_mp(this, &GunDropped::BodyEntered), CONNECT_DEFERRED);

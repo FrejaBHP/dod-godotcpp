@@ -24,6 +24,8 @@ public:
 	Sprite2D* Sprite = nullptr;
 	Area2D* PickupArea = nullptr;
 
+	bool CanBePickedUp;
+
 protected:
 	static void _bind_methods();
 	//void BodyEntered(Node2D* body);

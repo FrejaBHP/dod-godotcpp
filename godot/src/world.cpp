@@ -13,3 +13,11 @@ void World::_bind_methods() {
 World::World() {
 
 }
+
+void World::_ready() {
+	GameInstance::GetInstance().RegisterWorld(this);
+}
+
+void World::_physics_process(double delta) {
+
+}
