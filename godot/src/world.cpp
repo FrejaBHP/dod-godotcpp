@@ -15,7 +15,10 @@ World::World() {
 }
 
 void World::_ready() {
-	GameInstance::GetInstance().RegisterWorld(this);
+	GameInstance& gi = GameInstance::GetInstance();
+
+	gi.RegisterWorld(this);
+	gi.HideCursor();
 }
 
 void World::_physics_process(double delta) {

@@ -2,6 +2,7 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/window.hpp>
+#include <godot_cpp/classes/input.hpp>
 
 #include <godot_cpp/classes/node2d.hpp>
 
@@ -87,4 +88,12 @@ World* GameInstance::GetWorld() {
 
 Player* GameInstance::GetPlayer() {
 	return GPlayer;
+}
+
+void GameInstance::ShowCursor() {
+	Input::get_singleton()->set_mouse_mode(Input::MouseMode::MOUSE_MODE_VISIBLE);
+}
+
+void GameInstance::HideCursor() {
+	Input::get_singleton()->set_mouse_mode(Input::MouseMode::MOUSE_MODE_HIDDEN);
 }

@@ -34,7 +34,7 @@ std::string GetManufacturerName(EManufacturer manufacturer) {
 		case EManufacturer::Bjorn:
 			return "Bjorn";
 		default:
-			return "???";
+			return "Placeholder";
 	}
 }
 

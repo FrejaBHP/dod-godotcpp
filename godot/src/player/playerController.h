@@ -3,6 +3,7 @@
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/node2d.hpp>
 #include <godot_cpp/classes/area2d.hpp>
+#include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/camera2d.hpp>
 #include <godot_cpp/classes/input_event.hpp>
@@ -12,6 +13,7 @@ using namespace godot;
 class Player;
 class Gun;
 class GunDropped;
+class HUD;
 
 class PlayerController : public Node {
 	GDCLASS(PlayerController, Node)
@@ -40,6 +42,9 @@ protected:
 	static void _bind_methods();
 	void PickupAreaEntered(Area2D* area);
 	void PickupAreaExited(Area2D* area);
+	void PickupTimerTimeout();
+	void ScanForGuns();
+	GunDropped* GetClosestGunDropped();
 	void Interact();
 	void SwapGunOnGround();
 
@@ -48,11 +53,12 @@ protected:
 	Label* DebugLabel = nullptr;
 	Camera2D* PlayerCamera = nullptr;
 	Area2D* PickupRadius = nullptr;
+	Timer* PickupTimer = nullptr;
+	HUD* PlayerHUD = nullptr;
+
+	std::vector<GunDropped*> DroppedGunsInRadius;
 
 	GunDropped* DroppedGunInFocus = nullptr;
-
-	// Temp
-	Label* AmmoLabel = nullptr;
 
 	bool isLMBHeld = false;
 	bool isRMBHeld = false;

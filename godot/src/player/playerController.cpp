@@ -9,6 +9,7 @@
 #include <godot_cpp/classes/window.hpp>
 
 //#include <godot_cpp/variant/utility_functions.hpp>
+#include <algorithm>
 
 #include "player/playerController.h"
 #include "player/playerChar.h"
@@ -16,6 +17,7 @@
 #include "gun/gun.h"
 #include "gun/gunDropped.h"
 #include "shared/utility.h"
+#include "ui/hud.h"
 
 using namespace godot;
 using namespace std::chrono;
@@ -32,10 +34,13 @@ void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("PickupAreaExited"), &PlayerController::PickupAreaExited);
 	ClassDB::bind_method(D_METHOD("Interact"), &PlayerController::Interact);
 	ClassDB::bind_method(D_METHOD("SwapGunOnGround"), &PlayerController::SwapGunOnGround);
+	ClassDB::bind_method(D_METHOD("PickupTimerTimeout"), &PlayerController::PickupTimerTimeout);
+	ClassDB::bind_method(D_METHOD("ScanForGuns"), &PlayerController::ScanForGuns);
+	ClassDB::bind_method(D_METHOD("GetClosestGunDropped"), &PlayerController::GetClosestGunDropped);
 }
 
 PlayerController::PlayerController() {
-	
+	DroppedGunsInRadius.reserve(8);
 }
 
 void PlayerController::_ready() {
@@ -131,6 +136,7 @@ void PlayerController::_physics_process(double delta) {
 			}
 		}
 
+		/*
 		if (DroppedGunInFocus) {
 			std::string focus = GetGunTypeName(DroppedGunInFocus->GunDef->GunType) + " : " + GetGunSubTypeName(DroppedGunInFocus->GunDef->GunSubType);
 			DebugLabel->set_text(focus.c_str());
@@ -138,6 +144,7 @@ void PlayerController::_physics_process(double delta) {
 		else {
 			DebugLabel->set_text("None");
 		}
+		*/
 	}
 }
 
@@ -159,6 +166,11 @@ void PlayerController::Interact() {
 void PlayerController::SetPlayer(Player* player) {
 	ControlledPlayer = player;
 
+	HUD* hud = player->get_node<HUD>("CanvasLayer/PlayerHUD");
+	if (hud) {
+		PlayerHUD = hud;
+	}
+
 	Node2D* crosshair = player->get_node<Node2D>("Crosshair");
 	if (crosshair) {
 		PlayerCrosshair = crosshair;
@@ -174,11 +186,6 @@ void PlayerController::SetPlayer(Player* player) {
 		PlayerCamera = camera;
 	}
 
-	Label* ammoLabel = player->get_node<Label>("CanvasLayer/Control/Label");
-	if (ammoLabel) {
-		AmmoLabel = ammoLabel;
-	}
-
 	Area2D* pickupRadius = player->get_node<Area2D>("PickupRadius");
 	if (pickupRadius) {
 		PickupRadius = pickupRadius;
@@ -186,6 +193,15 @@ void PlayerController::SetPlayer(Player* player) {
 		// Note to self: Du kan spare 2 timer i fremtiden ved ikke at sætte CALLABLE_DEFERRED og skabe interne race conditions
 		PickupRadius->connect("area_entered", callable_mp(this, &PlayerController::PickupAreaEntered));
 		PickupRadius->connect("area_exited", callable_mp(this, &PlayerController::PickupAreaExited));
+	}
+
+	Timer* pickupTimer = player->get_node<Timer>("PickupTimer");
+	if (pickupTimer) {
+		PickupTimer = pickupTimer;
+
+		PickupTimer->connect("timeout", callable_mp(this, &PlayerController::PickupTimerTimeout));
+		PickupTimer->set_wait_time(0.125);
+		PickupTimer->start();
 	}
 
 	GameInstance::GetInstance().RegisterPlayer(ControlledPlayer);
@@ -233,7 +249,7 @@ void PlayerController::SwapGunOnGround() {
 // Temp
 void PlayerController::UpdateAmmoLabel() {
 	if (!ControlledPlayer->GetCurrentGun()) {
-		AmmoLabel->set_text("");
+		PlayerHUD->ClearAmmoDisplay();
 		return;
 	}
 
@@ -248,10 +264,14 @@ void PlayerController::UpdateAmmoLabel() {
 		ammo = ControlledPlayer->ARAmmo;
 	}
 
+	/*
 	char ammoBuffer[32];
 	sprintf(ammoBuffer, "%d / %d", ControlledPlayer->GetCurrentGun()->MagAmmo, ammo);
 
 	AmmoLabel->set_text(ammoBuffer);
+	*/
+
+	PlayerHUD->SetAmmoDisplayValues(ControlledPlayer->GetCurrentGun()->MagAmmo, ammo);
 }
 
 void PlayerController::PickupAreaEntered(Area2D* area) {
@@ -263,7 +283,10 @@ void PlayerController::PickupAreaEntered(Area2D* area) {
 		//std::string type = GetGunTypeName(dGun->GunDef->GunType) + " : " + GetGunSubTypeName(dGun->GunDef->GunSubType);
 		//print_line(type.c_str());
 
-		DroppedGunInFocus = dGun;
+		//DroppedGunInFocus = dGun;
+
+		DroppedGunsInRadius.push_back(dGun);
+		ScanForGuns();
 	}
 }
 
@@ -272,32 +295,95 @@ void PlayerController::PickupAreaExited(Area2D* area) {
 
 	if (parent && parent->is_in_group("GunDropped")) {
 		GunDropped* dGun = static_cast<GunDropped*>(parent);
+		const std::vector<GunDropped*>::iterator index = std::find(DroppedGunsInRadius.begin(), DroppedGunsInRadius.end(), dGun);
 
-		if (dGun == DroppedGunInFocus) {
-			TypedArray<Area2D> overlaps = PickupRadius->get_overlapping_areas();
-
-			if (overlaps.size() == 0) {
-				DroppedGunInFocus = nullptr;
-			}
-			else {
-				float shortestDist = 100.f;
-				int32_t shortestIndex = 0;
-
-				for (size_t i = 0; i < overlaps.size(); i++) {
-					// static_cast virker overhovedet ikke til Variant-typer >.>
-					Area2D* element = Object::cast_to<Area2D>(overlaps[i]);
-
-					float dist = ControlledPlayer->get_global_position().distance_squared_to(element->get_global_position());
-					if (shortestDist > dist) {
-						shortestDist = dist;
-						shortestIndex = i;
-					}
-				}
-
-				Area2D* closest = Object::cast_to<Area2D>(overlaps[shortestIndex]);
-				GunDropped* newFocus = static_cast<GunDropped*>(closest->get_parent());
-				DroppedGunInFocus = newFocus;
-			}
+		if (index != DroppedGunsInRadius.end()) {
+			DroppedGunsInRadius.erase(index);
+			ScanForGuns();
 		}
 	}
+}
+
+void PlayerController::PickupTimerTimeout() {
+	ScanForGuns();
+
+	/* opdaterer den ikke ordentligt, når man kun går imellem ticks
+	if (ControlledPlayer->get_velocity().length() > 0.f) {
+		
+	}
+	*/
+}
+
+void PlayerController::ScanForGuns() {
+	GunDropped* dgun = GetClosestGunDropped();
+
+	if (dgun) {
+		if (!DroppedGunInFocus || dgun != DroppedGunInFocus) {
+			PlayerHUD->GetPriItemCard()->UseGunDef(*dgun->GunDef);
+			PlayerHUD->ShowItemCard();
+		}
+
+		DroppedGunInFocus = dgun;
+	}
+	else {
+		DroppedGunInFocus = nullptr;
+		PlayerHUD->HideItemCard();
+	}
+}
+
+GunDropped* PlayerController::GetClosestGunDropped() {
+	if (DroppedGunsInRadius.empty()) {
+		return nullptr;
+	}
+
+	if (DroppedGunsInRadius.size() == 1) {
+		return DroppedGunsInRadius[0];
+	}
+
+	float shortestDist = 100.f;
+	int32_t shortestIndex = 0;
+
+	for (size_t i = 0; i < DroppedGunsInRadius.size(); i++) {
+		const GunDropped* element = DroppedGunsInRadius[i];
+
+		if (!element) {
+			continue;
+		}
+
+		const float dist = ControlledPlayer->get_global_position().distance_to(element->get_global_position());
+
+		if (shortestDist > dist) {
+			shortestDist = dist;
+			shortestIndex = i;
+		}
+	}
+
+	return DroppedGunsInRadius[shortestIndex];
+
+	/*
+	TypedArray<Area2D> overlaps = PickupRadius->get_overlapping_areas();
+
+	if (overlaps.size() == 0) {
+		DroppedGunInFocus = nullptr;
+	}
+	else {
+		float shortestDist = 100.f;
+		int32_t shortestIndex = 0;
+
+		for (size_t i = 0; i < overlaps.size(); i++) {
+			// static_cast virker overhovedet ikke til Variant-typer >.>
+			Area2D* element = Object::cast_to<Area2D>(overlaps[i]);
+
+			float dist = ControlledPlayer->get_global_position().distance_squared_to(element->get_global_position());
+			if (shortestDist > dist) {
+				shortestDist = dist;
+				shortestIndex = i;
+			}
+		}
+
+		Area2D* closest = Object::cast_to<Area2D>(overlaps[shortestIndex]);
+		GunDropped* newFocus = static_cast<GunDropped*>(closest->get_parent());
+		DroppedGunInFocus = newFocus;
+	}
+	*/
 }

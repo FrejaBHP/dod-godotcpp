@@ -11,6 +11,8 @@
 #include "projectiles/projectile.h"
 #include "gun/gun.h"
 #include "gun/gunDropped.h"
+#include "ui/hud.h"
+#include "ui/itemCard.h"
 
 using namespace godot;
 
@@ -23,6 +25,8 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level) {
 
 	GDREGISTER_RUNTIME_CLASS(Player);
 	GDREGISTER_RUNTIME_CLASS(PlayerController);
+	GDREGISTER_RUNTIME_CLASS(HUD);
+	GDREGISTER_RUNTIME_CLASS(ItemCard);
 
 	GDREGISTER_RUNTIME_CLASS(Projectile);
 

@@ -30,6 +30,9 @@ public:
 	void CopyEquippedGunToDrop(Gun* gun, Vector2 position);
 	Gun* CopyDroppedGunToEquip(GunDropped* dgun);
 
+	void ShowCursor();
+	void HideCursor();
+
 	World* GetWorld();
 	Player* GetPlayer();
 
