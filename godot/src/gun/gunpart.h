@@ -6,12 +6,11 @@
 
 class GunPart {
 public:
-	EManufacturer Manufacturer { EManufacturer::Placeholder };
 	int32_t PartRarity { 0 };
-	std::vector<Attribute> Attributes;
+	std::vector<Attribute> Bonuses;
 
 	GunPart() {}
-	GunPart(std::vector<Attribute> attributes) : Attributes(attributes) {}
+	GunPart(std::vector<Attribute> bonuses) : Bonuses(bonuses) {}
 
 protected:
 
@@ -20,7 +19,8 @@ private:
 };
 
 class MaterialComponent : public GunPart {
-
+public:
+	EManufacturer Manufacturer { EManufacturer::Placeholder };
 };
 
 class BodyComponent : public GunPart {

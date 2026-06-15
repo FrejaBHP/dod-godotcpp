@@ -8,26 +8,42 @@ class Attribute {
 public:
 	EAttributeType AttrType;
 	int32_t Flat;
-	double ScalePos;
-	double ScaleNeg;
+	double Scale;
+
+	static double GetAdjustedScale(double scale) {
+		if (scale >= 0) {
+			return 1 + scale;
+		}
+		else {
+			return 1 / (1 - scale);
+		}
+	}
 
 	Attribute operator+(const Attribute& b) {
 		Attribute c;
 
 		c.Flat = this->Flat + b.Flat;
-		c.ScalePos = this->ScalePos + b.ScalePos;
-		c.ScaleNeg = this->ScaleNeg + b.ScaleNeg;
+		c.Scale = this->Scale + b.Scale;
 
 		return c;
+	}
+
+	void operator+=(const Attribute& b) {
+		this->Flat += b.Flat;
+		this->Scale += b.Scale;
 	}
 
 	Attribute operator-(const Attribute& b) {
 		Attribute c;
 
 		c.Flat = this->Flat - b.Flat;
-		c.ScalePos = this->ScalePos - b.ScalePos;
-		c.ScaleNeg = this->ScaleNeg - b.ScaleNeg;
+		c.Scale = this->Scale - b.Scale;
 
 		return c;
+	}
+
+	void operator-=(const Attribute& b) {
+		this->Flat -= b.Flat;
+		this->Scale -= b.Scale;
 	}
 };

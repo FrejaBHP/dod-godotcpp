@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <memory>
 
+#include <godot_cpp/classes/resource_loader.hpp>
+
 #include "gun/gunDefinition.h"
 #include "gun/gunDropped.h"
 
@@ -24,11 +26,15 @@ public:
 	GameInstance(GameInstance const&) = delete;
 	void operator=(GameInstance const&) = delete;
 
+	void Init();
+
 	void RegisterWorld(World* world);
 	void RegisterPlayer(Player* player);
 	void DebugSpawnGun(int32_t type);
 	void CopyEquippedGunToDrop(Gun* gun, Vector2 position);
 	Gun* CopyDroppedGunToEquip(GunDropped* dgun);
+
+	void GenerateAndDropGun(int32_t type);
 
 	void ShowCursor();
 	void HideCursor();
@@ -39,6 +45,9 @@ public:
 protected:
 	World* GWorld = nullptr;
 	Player* GPlayer = nullptr;
+	ResourceLoader* ResLoader = nullptr;
+
+	bool HasBeenInitialised { false };
 
 private:
 	GameInstance() {}

@@ -6,6 +6,7 @@
 #include "player/playerChar.h"
 #include "player/playerController.h"
 #include "projectiles/projectile.h"
+#include "shared/utility.h"
 
 using namespace godot;
 
@@ -62,17 +63,30 @@ void Gun::PrimaryFire() {
 		Node2D* world = get_tree()->get_root()->get_node<Node2D>("World");
 
 		if (world) {
-			Projectile* proj = static_cast<Projectile*>(ProjectileScene->instantiate());
-			world->add_child(proj);
+			for (size_t i = 0; i < GunDef->ProjectileCount; i++) {
+				Projectile* proj = static_cast<Projectile*>(ProjectileScene->instantiate());
+				world->add_child(proj);
 
-			proj->set_global_position(OwningPlayer->get_global_position());
-			proj->look_at(OwningPlayer->GetController()->GetCrosshair()->get_global_position());
+				proj->set_global_position(OwningPlayer->get_global_position());
+				proj->look_at(OwningPlayer->GetController()->GetCrosshair()->get_global_position());
 
-			MagAmmo -= 1;
+				AdjustFiringAngle(proj);
+			}
+			
+			MagAmmo -= GunDef->ShotCost;
 
+			OwningPlayer->GetController()->ApplyRecoil();
 			OwningPlayer->GetController()->UpdateAmmoLabel();
 		}
 	}
+}
+
+void Gun::AdjustFiringAngle(Node2D* node) {
+	double maxAngle = OwningPlayer->Inaccuracy + GunDef->Spread;
+	double randomAngle = GetRandomDouble(-maxAngle, maxAngle);
+
+	double rad = godot::Math::deg_to_rad(randomAngle);
+	node->rotate((float)rad);
 }
 
 bool Gun::TryReload() {

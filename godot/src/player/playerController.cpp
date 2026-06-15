@@ -84,7 +84,7 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug0")) {
-
+			GameInstance::GetInstance().GenerateAndDropGun(-1);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug1")) {
@@ -98,15 +98,15 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug4")) {
-			GameInstance::GetInstance().DebugSpawnGun(0);
+			GameInstance::GetInstance().GenerateAndDropGun(0);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug5")) {
-			GameInstance::GetInstance().DebugSpawnGun(1);
+			GameInstance::GetInstance().GenerateAndDropGun(1);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug6")) {
-			GameInstance::GetInstance().DebugSpawnGun(2);
+			GameInstance::GetInstance().GenerateAndDropGun(2);
 		}
 	}
 }
@@ -135,6 +135,13 @@ void PlayerController::_physics_process(double delta) {
 				currentGun->TryPrimaryFire();
 			}
 		}
+
+		if (CanRecoverInaccuracy) {
+			RecoverInaccuracy(delta);
+		}
+
+		DebugLabel->set_text(vformat("%.2f, %.2f, %d", ControlledPlayer->Inaccuracy, InaccuracyTimer->get_time_left(), int(CanRecoverInaccuracy)));
+		
 
 		/*
 		if (DroppedGunInFocus) {
@@ -204,6 +211,13 @@ void PlayerController::SetPlayer(Player* player) {
 		PickupTimer->start();
 	}
 
+	Timer* inaccTimer = player->get_node<Timer>("InaccuracyTimer");
+	if (inaccTimer) {
+		InaccuracyTimer = inaccTimer;
+		InaccuracyTimer->set_one_shot(true);
+		InaccuracyTimer->connect("timeout", callable_mp(this, &PlayerController::EnableInaccuracyRecovery));
+	}
+
 	GameInstance::GetInstance().RegisterPlayer(ControlledPlayer);
 }
 
@@ -217,6 +231,7 @@ Node2D* PlayerController::GetCrosshair() const {
 
 void PlayerController::SetCurrentGunSlot(int32_t slot) {
 	CurrentGunSlot = slot;
+	ApplyCurrentGun();
 	UpdateAmmoLabel();
 }
 
@@ -244,6 +259,49 @@ void PlayerController::SwapGunOnGround() {
 	oldGun->queue_free();
 
 	UpdateAmmoLabel();
+}
+
+void PlayerController::ApplyCurrentGun() {
+	Gun* gun = ControlledPlayer->GetCurrentGun();
+
+	ControlledPlayer->Recoil = gun->GunDef->Recoil;
+	ControlledPlayer->MinInaccuracy = gun->GunDef->MinInaccuracy;
+	ControlledPlayer->MaxInaccuracy = gun->GunDef->MaxInaccuracy;
+	ControlledPlayer->InaccuracyRegen = gun->GunDef->InaccuracyRegen;
+	ControlledPlayer->InaccuracyRegenDelay = gun->GunDef->InaccuracyRegenDelay;
+	ControlledPlayer->Inaccuracy = ControlledPlayer->MinInaccuracy;
+	IsFullyAccurate = true;
+}
+
+void PlayerController::ApplyRecoil() {
+	CanRecoverInaccuracy = false;
+	IsFullyAccurate = false;
+
+	double newInaccuracy = ControlledPlayer->Inaccuracy + ControlledPlayer->Recoil;
+	if (newInaccuracy > ControlledPlayer->MaxInaccuracy) {
+		newInaccuracy = ControlledPlayer->MaxInaccuracy;
+	}
+
+	ControlledPlayer->Inaccuracy = newInaccuracy;
+
+	InaccuracyTimer->start((float)ControlledPlayer->InaccuracyRegenDelay);
+}
+
+void PlayerController::EnableInaccuracyRecovery() {
+	CanRecoverInaccuracy = true;
+}
+
+void PlayerController::RecoverInaccuracy(double delta) {
+	double regenStep = ControlledPlayer->InaccuracyRegen * delta;
+	double newInaccuracy = ControlledPlayer->Inaccuracy - regenStep;
+
+	if (ControlledPlayer->MinInaccuracy > newInaccuracy) {
+		newInaccuracy = ControlledPlayer->MinInaccuracy;
+		CanRecoverInaccuracy = false;
+		IsFullyAccurate = true;
+	}
+
+	ControlledPlayer->Inaccuracy = newInaccuracy;
 }
 
 // Temp

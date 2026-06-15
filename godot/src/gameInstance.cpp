@@ -1,9 +1,7 @@
 #include <godot_cpp/classes/packed_scene.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/window.hpp>
 #include <godot_cpp/classes/input.hpp>
-
 #include <godot_cpp/classes/node2d.hpp>
 
 #include "gameInstance.h"
@@ -13,7 +11,18 @@
 #include "world.h"
 #include "gun/gun.h"
 
+#include "gun/parts/catalogueMaterials.h"
+#include "gun/parts/catalogueSMG.h"
+
 using namespace godot;
+
+void GameInstance::Init() {
+	if (HasBeenInitialised) {
+		return;
+	}
+
+	ResLoader = ResourceLoader::get_singleton();
+}
 
 void GameInstance::DebugSpawnGun(int32_t type) {
 	std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
@@ -28,12 +37,52 @@ void GameInstance::DebugSpawnGun(int32_t type) {
 		gundef->SetARStats();
 	}
 
-	ResourceLoader* loader = ResourceLoader::get_singleton();
-	Ref<PackedScene> droppedScene = loader->load("res://gun_dropped.tscn");
+	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");
 
 	if (droppedScene->can_instantiate()) {
-		//Node2D* world = get_tree()->get_root()->get_node<Node2D>("World");
+		if (GWorld && GPlayer) {
+			GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
+			GWorld->add_child(dGun);
+			dGun->SetupDroppedGun(gundef);
 
+			dGun->set_global_position(GPlayer->get_global_position());
+		}
+	}
+}
+
+void GameInstance::GenerateAndDropGun(int32_t type) {
+	std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
+
+	int32_t manuIndex = GetRandomInt(0, (int32_t)EManufacturer::COUNT - 1);
+	EManufacturer manufacturer = (EManufacturer)manuIndex;
+
+	gundef->Material = GetRandomMaterial(manufacturer);
+	gundef->Manufacturer = gundef->Material->Manufacturer;
+
+	if (type == -1) {
+		type = GetRandomInt(0, 2);
+	}
+
+	if (type == 0) {
+		gundef->SetPistolStats();
+	}
+	else if (type == 1) {
+		gundef->SetSMGStats();
+		gundef->Barrel = GetRandomSMGBarrel();
+		gundef->Body = GetRandomSMGBody();
+		gundef->Magazine = GetRandomSMGMag();
+		gundef->Stock = GetRandomSMGStock();
+		gundef->Accessory = GetRandomSMGAccessory();
+	}
+	else {
+		gundef->SetARStats();
+	}
+
+	gundef->ApplyPartsBonuses();
+
+	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");
+
+	if (droppedScene->can_instantiate()) {
 		if (GWorld && GPlayer) {
 			GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
 			GWorld->add_child(dGun);
@@ -47,8 +96,7 @@ void GameInstance::DebugSpawnGun(int32_t type) {
 void GameInstance::CopyEquippedGunToDrop(Gun* gun, Vector2 position) {
 	gun->GunDef->MetaMagAmmo = gun->MagAmmo;
 
-	ResourceLoader* loader = ResourceLoader::get_singleton();
-	Ref<PackedScene> droppedScene = loader->load("res://gun_dropped.tscn");
+	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");
 
 	if (droppedScene->can_instantiate()) {
 		if (GWorld && GPlayer) {
@@ -62,16 +110,23 @@ void GameInstance::CopyEquippedGunToDrop(Gun* gun, Vector2 position) {
 }
 
 Gun* GameInstance::CopyDroppedGunToEquip(GunDropped* dgun) {
-	// NOTE: Will be replaced with a Gun scene eventually
-	Gun* newGun = memnew(Gun);
+	Ref<PackedScene> gunScene = ResLoader->load("res://gun.tscn");
 
-	if (newGun) {
-		newGun->BuildGun(dgun->GunDef);
-		newGun->MagAmmo = newGun->GunDef->MetaMagAmmo;
-		GPlayer->add_child(newGun);
+	if (gunScene->can_instantiate()) {
+		if (GWorld && GPlayer) {
+			Gun* newGun = static_cast<Gun*>(gunScene->instantiate());
+			newGun->BuildGun(dgun->GunDef);
+			newGun->MagAmmo = newGun->GunDef->MetaMagAmmo;
+			GPlayer->add_child(newGun);
+
+			return newGun;
+		}
 	}
 
-	return newGun;
+	//FIXME: Lav bedre error handling
+	print_error("Failed to instantiate Gun");
+
+	return nullptr;
 }
 
 void GameInstance::RegisterWorld(World* world) {

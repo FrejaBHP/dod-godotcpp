@@ -9,10 +9,55 @@ int GetRandomInt(int min, int max) {
 	return distr(gen);
 }
 
+float GetRandomFloat(float min, float max) {
+	std::uniform_real_distribution<> distr(min, max);
+
+	return distr(gen);
+}
+
 double GetRandomDouble(double min, double max) {
 	std::uniform_real_distribution<> distr(min, max);
 
 	return distr(gen);
+}
+
+godot::Color GetRarityColour(int32_t rarity) {
+	godot::Color rarityColour;
+
+	// 0 - 4: White/Common
+	if (rarity < 5) {
+		rarityColour = godot::Color(1.f, 1.f, 1.f, 1.f);
+	}
+	// 5 - 12: Green/Uncommon
+	else if (rarity < 13) {
+		rarityColour = godot::Color(0.f, 1.f, 0.f, 1.f);
+	}
+	// 14 - 20: Blue/Rare
+	else if (rarity < 21) {
+		rarityColour = godot::Color(0.f, 0.f, 1.f, 1.f);
+	}
+	// 21 - 50: Purple/Epic
+	else if (rarity < 51) {
+		rarityColour = godot::Color(1.f, 0.f, 1.f, 1.f);
+	}
+	// 51 - 60: Yellow/Unique
+	else if (rarity < 61) {
+		rarityColour = godot::Color(1.f, 1.f, 0.f, 1.f);
+	}
+	// 61 - 70: Orange/Legendary
+	else if (rarity < 71) {
+		rarityColour = godot::Color(1.f, 0.5f, 0.f, 1.f);
+	}
+	// 71 - 100: Dark Orange/Higher tier legendary
+	else if (rarity < 101) {
+		rarityColour = godot::Color(1.f, 0.4f, 0.f, 1.f);
+	}
+	// 101+: Pearlescent
+	else {
+		rarityColour = godot::Color(0.5f, 1.f, 1.f, 1.f);
+	}
+
+	return rarityColour;
 }
 
 std::string GetManufacturerName(EManufacturer manufacturer) {

@@ -37,6 +37,13 @@ public:
 	int32_t PistolAmmo { 48 };
 	int32_t SMGAmmo { 192 };
 	int32_t ARAmmo { 120 };
+
+	double Inaccuracy { 0 };
+	double Recoil { 0 };
+	double MinInaccuracy { 0 };
+	double MaxInaccuracy { 0 };
+	double InaccuracyRegen { 0 };
+	double InaccuracyRegenDelay { 0.2 };
 	
 protected:
 	static void _bind_methods();

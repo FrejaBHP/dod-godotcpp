@@ -37,6 +37,7 @@ protected:
 	static void _bind_methods();
 	virtual void PrimaryFire();
 	virtual void Reload();
+	void AdjustFiringAngle(Node2D* node);
 
 	steady_clock::time_point LastFired;
 	Ref<PackedScene> ProjectileScene = nullptr;

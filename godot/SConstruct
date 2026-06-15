@@ -42,7 +42,9 @@ sources = Glob("src/*.cpp")
 sources.append(Glob("src/player/*.cpp"))
 sources.append(Glob("src/projectiles/*.cpp"))
 sources.append(Glob("src/gun/*.cpp"))
+sources.append(Glob("src/gun/parts/*.cpp"))
 sources.append(Glob("src/shared/*.cpp"))
+sources.append(Glob("src/ui/*.cpp"))
 
 if env["target"] in ["editor", "template_debug"]:
     try:

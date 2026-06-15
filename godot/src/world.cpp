@@ -17,6 +17,7 @@ World::World() {
 void World::_ready() {
 	GameInstance& gi = GameInstance::GetInstance();
 
+	gi.Init();
 	gi.RegisterWorld(this);
 	gi.HideCursor();
 }

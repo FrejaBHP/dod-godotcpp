@@ -37,6 +37,7 @@ public:
 	void SetCurrentGunSlot(int32_t slot);
 	int32_t GetCurrentGunSlot() const;
 	void UpdateAmmoLabel();
+	void ApplyRecoil();
 
 protected:
 	static void _bind_methods();
@@ -48,6 +49,10 @@ protected:
 	void Interact();
 	void SwapGunOnGround();
 
+	void ApplyCurrentGun();
+	void EnableInaccuracyRecovery();
+	void RecoverInaccuracy(double delta);
+
 	Player* ControlledPlayer = nullptr;
 	Node2D* PlayerCrosshair = nullptr;
 	Label* DebugLabel = nullptr;
@@ -55,10 +60,14 @@ protected:
 	Area2D* PickupRadius = nullptr;
 	Timer* PickupTimer = nullptr;
 	HUD* PlayerHUD = nullptr;
+	Timer* InaccuracyTimer = nullptr;
 
 	std::vector<GunDropped*> DroppedGunsInRadius;
 
 	GunDropped* DroppedGunInFocus = nullptr;
+
+	bool IsFullyAccurate { false };
+	bool CanRecoverInaccuracy { false };
 
 	bool isLMBHeld = false;
 	bool isRMBHeld = false;

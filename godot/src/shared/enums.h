@@ -7,12 +7,15 @@ enum class EAttributeType {
 	ShotCost,
 	ProjectileSpeed,
 
-	Accuracy,
-	Stability,
+	Recoil,
+	Spread,
+	InaccuracyMin,
+	InaccuracyMax,
+	InaccuracyRegen,
 
 	FireRate,
 	MagSize,
-	ReloadTime,
+	ReloadSpeed,
 
 	BurstCount,
 	StatusChance,
@@ -29,7 +32,6 @@ enum class EElement {
 };
 
 enum class EManufacturer {
-	Placeholder,
 	Mars,			// Dahl - high stability
 	Prism,			// Torgue but with lasers - high damage at the cost of firerate or accuracy
 	Bozboz,			// S&S/Bandit/Scav - high capacity
@@ -38,7 +40,8 @@ enum class EManufacturer {
 	Violet,			// Maliwan - always elemental, elemental bonuses
 	Prometheus,		// Atlas - good damage and accuracy
 	Bjorn,			// Vladof - high firerate
-	COUNT
+	COUNT,
+	Placeholder
 };
 
 enum class EGunType {

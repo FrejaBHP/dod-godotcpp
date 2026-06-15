@@ -8,6 +8,7 @@ void ItemCard::_bind_methods() {
 }
 
 void ItemCard::_ready() {
+	LName = get_node<Label>("CardContainer/VTextContainer/LName");
 	LGunType = get_node<Label>("CardContainer/VTextContainer/LGunType");
 	LManufacturer = get_node<Label>("CardContainer/VTextContainer/LManufacturer");
 	CardRows[0] = get_node<HBoxContainer>("CardContainer/VTextContainer/RDamage");
@@ -30,11 +31,20 @@ Label* ItemCard::GetRowValueLabelByName(ECardRow row) {
 }
 
 void ItemCard::UseGunDef(const GunDefinition& gundef) {
+	LName->add_theme_color_override("font_color", GetRarityColour(gundef.RarityScore));
+	LName->set_text(vformat("%s", GetGunTypeName(gundef.GunType).c_str()));
+
 	LGunType->set_text(vformat("%s :: %s", GetGunTypeName(gundef.GunType).c_str(), GetGunSubTypeName(gundef.GunSubType).c_str()));
 	LManufacturer->set_text(GetManufacturerName(gundef.Manufacturer).c_str());
 
-	GetRowValueLabelByName(Damage)->set_text(vformat("%.0f", gundef.Damage));
-	GetRowValueLabelByName(Accuracy)->set_text(vformat("%.0d", gundef.ProjectileCount));
+	if (gundef.ProjectileCount > 1) {
+		GetRowValueLabelByName(Damage)->set_text(vformat("%.0fx%.0d", gundef.Damage, gundef.ProjectileCount));
+	}
+	else {
+		GetRowValueLabelByName(Damage)->set_text(vformat("%.0f", gundef.Damage));
+	}
+	
+	GetRowValueLabelByName(Accuracy)->set_text(vformat("%.1f", gundef.Accuracy));
 	GetRowValueLabelByName(FireRate)->set_text(vformat("%.1f", 1000 / gundef.FireTime));
 	GetRowValueLabelByName(Reload)->set_text(vformat("%.1f", gundef.ReloadTime));
 	GetRowValueLabelByName(Magazine)->set_text(vformat("%.0d", gundef.MagSize));

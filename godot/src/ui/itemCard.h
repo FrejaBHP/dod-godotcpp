@@ -35,6 +35,7 @@ protected:
 
 	static const int32_t NumRows { 5 };
 
+	Label* LName = nullptr;
 	Label* LGunType = nullptr;
 	Label* LManufacturer = nullptr;
 	HBoxContainer* CardRows[NumRows];
