@@ -72,8 +72,13 @@ void Gun::PrimaryFire() {
 
 				AdjustFiringAngle(proj);
 			}
-			
-			MagAmmo -= GunDef->ShotCost;
+
+			if (GunDef->ShotCost > MagAmmo) {
+				MagAmmo = 0;
+			}
+			else {
+				MagAmmo -= GunDef->ShotCost;
+			}
 
 			OwningPlayer->GetController()->ApplyRecoil();
 			OwningPlayer->GetController()->UpdateAmmoLabel();

@@ -110,7 +110,7 @@ std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer)
 
 MatPrometheus1::MatPrometheus1() {
 	Manufacturer = EManufacturer::Prometheus;
-	PartRarity = 1;
+	PartNum = 1;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.1 },
@@ -121,6 +121,7 @@ MatPrometheus1::MatPrometheus1() {
 
 MatPrometheus2::MatPrometheus2() {
 	Manufacturer = EManufacturer::Prometheus;
+	PartNum = 2;
 	PartRarity = 2;
 
 	Bonuses = {
@@ -132,7 +133,8 @@ MatPrometheus2::MatPrometheus2() {
 
 MatPrometheus3::MatPrometheus3() {
 	Manufacturer = EManufacturer::Prometheus;
-	PartRarity = 3;
+	PartNum = 3;
+	PartRarity = 4;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.2 },
@@ -144,7 +146,7 @@ MatPrometheus3::MatPrometheus3() {
 
 MatPrism1::MatPrism1() {
 	Manufacturer = EManufacturer::Prism;
-	PartRarity = 1;
+	PartNum = 1;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.2 },
@@ -157,6 +159,7 @@ MatPrism1::MatPrism1() {
 
 MatPrism2::MatPrism2() {
 	Manufacturer = EManufacturer::Prism;
+	PartNum = 2;
 	PartRarity = 2;
 
 	Bonuses = {
@@ -170,7 +173,8 @@ MatPrism2::MatPrism2() {
 
 MatPrism3::MatPrism3() {
 	Manufacturer = EManufacturer::Prism;
-	PartRarity = 3;
+	PartNum = 3;
+	PartRarity = 4;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.3 },
@@ -183,7 +187,7 @@ MatPrism3::MatPrism3() {
 
 MatMars1::MatMars1() {
 	Manufacturer = EManufacturer::Mars;
-	PartRarity = 1;
+	PartNum = 1;
 
 	Bonuses = {
 		{ EAttributeType::Spread, 0, 0.2 },
@@ -194,6 +198,7 @@ MatMars1::MatMars1() {
 
 MatMars2::MatMars2() {
 	Manufacturer = EManufacturer::Mars;
+	PartNum = 2;
 	PartRarity = 2;
 
 	Bonuses = {
@@ -207,7 +212,8 @@ MatMars2::MatMars2() {
 
 MatMars3::MatMars3() {
 	Manufacturer = EManufacturer::Mars;
-	PartRarity = 3;
+	PartNum = 3;
+	PartRarity = 4;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.1 },
@@ -220,7 +226,7 @@ MatMars3::MatMars3() {
 
 MatWeaver1::MatWeaver1() {
 	Manufacturer = EManufacturer::Weaver;
-	PartRarity = 1;
+	PartNum = 1;
 
 	Bonuses = {
 		{ EAttributeType::Spread, 0, -0.7 },
@@ -231,6 +237,7 @@ MatWeaver1::MatWeaver1() {
 
 MatWeaver2::MatWeaver2() {
 	Manufacturer = EManufacturer::Weaver;
+	PartNum = 2;
 	PartRarity = 2;
 
 	Bonuses = {
@@ -244,7 +251,8 @@ MatWeaver2::MatWeaver2() {
 
 MatWeaver3::MatWeaver3() {
 	Manufacturer = EManufacturer::Weaver;
-	PartRarity = 3;
+	PartNum = 3;
+	PartRarity = 4;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.1 },
@@ -258,7 +266,7 @@ MatWeaver3::MatWeaver3() {
 
 MatSmitherson1::MatSmitherson1() {
 	Manufacturer = EManufacturer::Smitherson;
-	PartRarity = 1;
+	PartNum = 1;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.35 },
@@ -268,6 +276,7 @@ MatSmitherson1::MatSmitherson1() {
 
 MatSmitherson2::MatSmitherson2() {
 	Manufacturer = EManufacturer::Smitherson;
+	PartNum = 2;
 	PartRarity = 2;
 
 	Bonuses = {
@@ -281,7 +290,8 @@ MatSmitherson2::MatSmitherson2() {
 
 MatSmitherson3::MatSmitherson3() {
 	Manufacturer = EManufacturer::Smitherson;
-	PartRarity = 3;
+	PartNum = 3;
+	PartRarity = 4;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.5 },
@@ -295,7 +305,7 @@ MatSmitherson3::MatSmitherson3() {
 
 MatBjorn1::MatBjorn1() {
 	Manufacturer = EManufacturer::Bjorn;
-	PartRarity = 1;
+	PartNum = 1;
 
 	Bonuses = {
 		{ EAttributeType::Spread, 0, 0.32 },
@@ -307,6 +317,7 @@ MatBjorn1::MatBjorn1() {
 
 MatBjorn2::MatBjorn2() {
 	Manufacturer = EManufacturer::Bjorn;
+	PartNum = 2;
 	PartRarity = 2;
 
 	Bonuses = {
@@ -320,7 +331,8 @@ MatBjorn2::MatBjorn2() {
 
 MatBjorn3::MatBjorn3() {
 	Manufacturer = EManufacturer::Bjorn;
-	PartRarity = 3;
+	PartNum = 3;
+	PartRarity = 4;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.1 },
@@ -334,7 +346,7 @@ MatBjorn3::MatBjorn3() {
 
 MatBozboz1::MatBozboz1() {
 	Manufacturer = EManufacturer::Bozboz;
-	PartRarity = 1;
+	PartNum = 1;
 
 	Bonuses = {
 		{ EAttributeType::MagSize, 0, 0.4 },
@@ -344,6 +356,7 @@ MatBozboz1::MatBozboz1() {
 
 MatBozboz2::MatBozboz2() {
 	Manufacturer = EManufacturer::Bozboz;
+	PartNum = 2;
 	PartRarity = 2;
 
 	Bonuses = {
@@ -355,7 +368,8 @@ MatBozboz2::MatBozboz2() {
 
 MatBozboz3::MatBozboz3() {
 	Manufacturer = EManufacturer::Bozboz;
-	PartRarity = 3;
+	PartNum = 3;
+	PartRarity = 4;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.1 },
@@ -366,15 +380,16 @@ MatBozboz3::MatBozboz3() {
 
 MatViolet1::MatViolet1() {
 	Manufacturer = EManufacturer::Violet;
-	PartRarity = 1;
+	PartNum = 1;
 
 	Bonuses = {
-		
+
 	};
 }
 
 MatViolet2::MatViolet2() {
 	Manufacturer = EManufacturer::Violet;
+	PartNum = 2;
 	PartRarity = 2;
 
 	Bonuses = {
@@ -388,7 +403,8 @@ MatViolet2::MatViolet2() {
 
 MatViolet3::MatViolet3() {
 	Manufacturer = EManufacturer::Violet;
-	PartRarity = 3;
+	PartNum = 3;
+	PartRarity = 4;
 
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.1 },

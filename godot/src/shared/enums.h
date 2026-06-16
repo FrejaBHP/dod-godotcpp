@@ -23,6 +23,12 @@ enum class EAttributeType {
 	StatusDuration
 };
 
+enum class EFireMode {
+	Automatic,
+	Semi,
+	Burst
+};
+
 enum class EElement {
 	None,
 	Fire,

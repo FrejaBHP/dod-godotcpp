@@ -40,7 +40,7 @@ void Player::_ready() {
 		std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
 
 		if (i == 0) {
-			gundef->SetPistolStats();
+			gundef->SetRepeaterStats();
 		}
 		else if (i == 1) {
 			gundef->SetSMGStats();

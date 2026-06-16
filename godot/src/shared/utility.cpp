@@ -24,19 +24,19 @@ double GetRandomDouble(double min, double max) {
 godot::Color GetRarityColour(int32_t rarity) {
 	godot::Color rarityColour;
 
-	// 0 - 4: White/Common
-	if (rarity < 5) {
+	// 0 - 5: White/Common
+	if (rarity < 6) {
 		rarityColour = godot::Color(1.f, 1.f, 1.f, 1.f);
 	}
-	// 5 - 12: Green/Uncommon
+	// 6 - 12: Green/Uncommon
 	else if (rarity < 13) {
 		rarityColour = godot::Color(0.f, 1.f, 0.f, 1.f);
 	}
-	// 14 - 20: Blue/Rare
-	else if (rarity < 21) {
+	// 13 - 18: Blue/Rare
+	else if (rarity < 19) {
 		rarityColour = godot::Color(0.f, 0.f, 1.f, 1.f);
 	}
-	// 21 - 50: Purple/Epic
+	// 19 - 50: Purple/Epic
 	else if (rarity < 51) {
 		rarityColour = godot::Color(1.f, 0.f, 1.f, 1.f);
 	}

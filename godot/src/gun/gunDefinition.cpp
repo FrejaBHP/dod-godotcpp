@@ -6,9 +6,12 @@ GunDefinition::GunDefinition() {
 
 }
 
-void GunDefinition::SetPistolStats() {
+void GunDefinition::SetRepeaterStats() {
 	GunType = EGunType::Pistol;
 	GunSubType = EGunSubType::Repeater;
+	FireMode = EFireMode::Semi;
+	DefaultPrefix = "Bad";
+
 	BaseDamage = 6.0;
 	BaseFireTime = 225;
 	BaseMagSize = 12;
@@ -24,6 +27,9 @@ void GunDefinition::SetPistolStats() {
 void GunDefinition::SetSMGStats() {
 	GunType = EGunType::SMG;
 	GunSubType = EGunSubType::None;
+	FireMode = EFireMode::Automatic;
+	DefaultPrefix = "Patrol";
+
 	BaseDamage = 3.0;
 	BaseFireTime = 150;
 	BaseMagSize = 28;
@@ -39,6 +45,9 @@ void GunDefinition::SetSMGStats() {
 void GunDefinition::SetARStats() {
 	GunType = EGunType::Rifle;
 	GunSubType = EGunSubType::AssaultRifle;
+	FireMode = EFireMode::Automatic;
+	DefaultPrefix = "Combat";
+
 	BaseDamage = 5.0;
 	BaseFireTime = 200;
 	BaseMagSize = 15;
@@ -101,6 +110,47 @@ void GunDefinition::ApplyPartsBonuses() {
 		RarityScore += Accessory->PartRarity;
 	}
 
+	CalculateStats();
+}
+
+void GunDefinition::FinaliseGun() {
+	size_t numtitlebonuses = 0;
+
+	if (Title.get() != nullptr) {
+		numtitlebonuses = Title->Bonuses.size();
+
+		for (size_t i = 0; i < Title->Bonuses.size(); i++) {
+			AttrBonuses[Title->Bonuses[i].AttrType] += Title->Bonuses[i];
+		}
+		RarityScore += Title->PartRarity;
+	}
+
+	if (numtitlebonuses != 0) {
+		CalculateStats();
+	}
+
+	std::string prefix = "";
+	std::string suffix = "";
+
+	if (Accessory.get() != nullptr) {
+		prefix = Accessory->Name;
+	}
+
+	if (Title.get() != nullptr) {
+		suffix = Title->Title;
+	}
+
+	// If nothing has taken the place of the prefix, use default (so far)
+	if (prefix == "") {
+		prefix = DefaultPrefix;
+	}
+
+	GunName = prefix + " " + suffix;
+
+	MetaMagAmmo = MagSize;
+}
+
+void GunDefinition::CalculateStats() {
 	Damage = (BaseDamage + AttrBonuses[EAttributeType::Damage].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::Damage].Scale);
 
 	double fireRate = (1000 / BaseFireTime) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::FireRate].Scale);
@@ -122,9 +172,8 @@ void GunDefinition::ApplyPartsBonuses() {
 	InaccuracyRegen = BaseInaccuracyRegen;
 	InaccuracyRegenDelay = BaseInaccuracyRegenDelay;
 
-	Accuracy = 100 - (12 * Spread);
-
-	MetaMagAmmo = MagSize;
+	//Accuracy = 100 - (12 * Spread);
+	Accuracy = (1 - (Spread / 12)) * 100;
 }
 
 GunDefinition::~GunDefinition() {

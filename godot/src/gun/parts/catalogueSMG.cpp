@@ -6,6 +6,7 @@ constexpr int32_t NumBarrels = 5;
 constexpr int32_t NumMags = 5;
 constexpr int32_t NumStocks = 6;
 constexpr int32_t NumAccessories = 5;
+constexpr int32_t NumTitles = 5;
 
 std::unique_ptr<BodyComponent> GetRandomSMGBody() {
 	int32_t bodyIndex = GetRandomInt(0, NumBodies - 1);
@@ -156,15 +157,39 @@ std::unique_ptr<AccessoryComponent> GetRandomSMGAccessory() {
 	return std::unique_ptr<AccessoryComponent>(acc);
 }
 
+std::unique_ptr<TitleComponent> GetEligibleSMGTitle(GunDefinition* gundef) {
+	TitleComponent* title;
+
+	if (gundef->Magazine->PartNum == 1) {
+		title = new SMGTitleThumper();
+	}
+	else if (gundef->Accessory->PartNum == 4 && gundef->Accuracy <= 70.0) {
+		title = new SMGTitleAnarchy();
+	}
+	else if (gundef->FireTime <= 83) {
+		title = new SMGTitleStinger();
+	}
+	else if (gundef->AttrBonuses[EAttributeType::Damage].Scale >= 0.33) {
+		title = new SMGTitleBruiser();
+	}
+	else {
+		title = new SMGTitleDefault();
+	}
+
+	return std::unique_ptr<TitleComponent>(title);
+}
+
 
 SMGBody1::SMGBody1() {
+	PartNum = 1;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, -0.08 }
 	};
 }
 
 SMGBody2::SMGBody2() {
-	PartRarity = 1;
+	PartRarity = 2;
+	PartNum = 2;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.1 },
 		{ EAttributeType::FireRate, 0, -0.17 },
@@ -173,7 +198,8 @@ SMGBody2::SMGBody2() {
 }
 
 SMGBody3::SMGBody3() {
-	PartRarity = 1;
+	PartRarity = 2;
+	PartNum = 3;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, -0.15 },
 		{ EAttributeType::FireRate, 0, 0.3 },
@@ -182,7 +208,8 @@ SMGBody3::SMGBody3() {
 }
 
 SMGBody4::SMGBody4() {
-	PartRarity = 2;
+	PartRarity = 4;
+	PartNum = 4;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.2 },
 		{ EAttributeType::FireRate, 0, -0.23 },
@@ -191,7 +218,8 @@ SMGBody4::SMGBody4() {
 }
 
 SMGBody5::SMGBody5() {
-	PartRarity = 3;
+	PartRarity = 6;
+	PartNum = 5;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.2 },
 		{ EAttributeType::FireRate, 0, 0.5 },
@@ -201,6 +229,7 @@ SMGBody5::SMGBody5() {
 
 
 SMGBarrel1::SMGBarrel1() {
+	PartNum = 1;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, -0.04 }
 	};
@@ -208,6 +237,7 @@ SMGBarrel1::SMGBarrel1() {
 
 SMGBarrel2::SMGBarrel2() {
 	PartRarity = 1;
+	PartNum = 2;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.15 },
 		{ EAttributeType::Spread, 0, 0.28 },
@@ -218,7 +248,8 @@ SMGBarrel2::SMGBarrel2() {
 }
 
 SMGBarrel3::SMGBarrel3() {
-	PartRarity = 1;
+	PartRarity = 2;
+	PartNum = 3;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.1 },
 		{ EAttributeType::Spread, 0, -0.5 },
@@ -228,7 +259,8 @@ SMGBarrel3::SMGBarrel3() {
 }
 
 SMGBarrel4::SMGBarrel4() {
-	PartRarity = 2;
+	PartRarity = 4;
+	PartNum = 4;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.3 },
 		{ EAttributeType::Spread, 0, -0.3 },
@@ -239,7 +271,8 @@ SMGBarrel4::SMGBarrel4() {
 }
 
 SMGBarrel5::SMGBarrel5() {
-	PartRarity = 1;
+	PartRarity = 4;
+	PartNum = 5;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.15 },
 		{ EAttributeType::Spread, 0, -1.3 },
@@ -252,6 +285,7 @@ SMGBarrel5::SMGBarrel5() {
 
 SMGMag1Thumper::SMGMag1Thumper() {
 	PartRarity = 2;
+	PartNum = 1;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.7 },
 		{ EAttributeType::MagSize, -10, 0 },
@@ -261,13 +295,15 @@ SMGMag1Thumper::SMGMag1Thumper() {
 }
 
 SMGMag2::SMGMag2() {
+	PartNum = 2;
 	Bonuses = {
 		{ EAttributeType::ReloadSpeed, 0, 0.15 }
 	};
 }
 
 SMGMag3::SMGMag3() {
-	PartRarity = 1;
+	PartRarity = 2;
+	PartNum = 3;
 	Bonuses = {
 		{ EAttributeType::MagSize, 8, 0 },
 		{ EAttributeType::ReloadSpeed, 0, 0.2 }
@@ -276,6 +312,7 @@ SMGMag3::SMGMag3() {
 
 SMGMag4::SMGMag4() {
 	PartRarity = 1;
+	PartNum = 4;
 	Bonuses = {
 		{ EAttributeType::MagSize, 27, 0 },
 		{ EAttributeType::ReloadSpeed, 0, -0.6 }
@@ -284,6 +321,7 @@ SMGMag4::SMGMag4() {
 
 SMGMag5::SMGMag5() {
 	PartRarity = 1;
+	PartNum = 5;
 	Bonuses = {
 		{ EAttributeType::MagSize, 18, 0 },
 		{ EAttributeType::ReloadSpeed, 0, -0.4 }
@@ -292,6 +330,7 @@ SMGMag5::SMGMag5() {
 
 
 SMGStock0None::SMGStock0None() {
+	PartNum = 0;
 	Bonuses = {
 		{ EAttributeType::ReloadSpeed, 0, 0.3 },
 		{ EAttributeType::InaccuracyMin, 0, 0.5 },
@@ -302,12 +341,15 @@ SMGStock0None::SMGStock0None() {
 }
 
 SMGStock1::SMGStock1() {
+	PartNum = 1;
 	Bonuses = {
 		{ EAttributeType::InaccuracyRegen, 0, 0.2 },
 	};
 }
 
 SMGStock2::SMGStock2() {
+	PartRarity = 1;
+	PartNum = 2;
 	Bonuses = {
 		{ EAttributeType::ReloadSpeed, 0, -0.3 },
 		{ EAttributeType::InaccuracyMin, 0, -0.1 },
@@ -318,6 +360,8 @@ SMGStock2::SMGStock2() {
 }
 
 SMGStock3::SMGStock3() {
+	PartRarity = 2;
+	PartNum = 3;
 	Bonuses = {
 		{ EAttributeType::InaccuracyMin, 0, -0.2 },
 		{ EAttributeType::InaccuracyMax, 0, -0.2 },
@@ -327,6 +371,8 @@ SMGStock3::SMGStock3() {
 }
 
 SMGStock4::SMGStock4() {
+	PartRarity = 3;
+	PartNum = 4;
 	Bonuses = {
 		{ EAttributeType::ReloadSpeed, 0, -0.2 },
 		{ EAttributeType::InaccuracyMin, 0, -0.3 },
@@ -337,6 +383,8 @@ SMGStock4::SMGStock4() {
 }
 
 SMGStock5::SMGStock5() {
+	PartRarity = 4;
+	PartNum = 5;
 	Bonuses = {
 		{ EAttributeType::InaccuracyMin, 0, -0.4 },
 		{ EAttributeType::InaccuracyMax, 0, -0.4 },
@@ -347,18 +395,23 @@ SMGStock5::SMGStock5() {
 
 
 SMGAcc0None::SMGAcc0None() {
+	PartNum = 0;
 	Bonuses = {};
 }
 
 SMGAcc1Relentless::SMGAcc1Relentless() {
+	Name = "Relentless";
 	PartRarity = 2;
+	PartNum = 1;
 	Bonuses = {
 		{ EAttributeType::FireRate, 0, 0.2 },
 	};
 }
 
 SMGAcc2Ruthless::SMGAcc2Ruthless() {
-	PartRarity = 2;
+	Name = "Ruthless";
+	PartRarity = 3;
+	PartNum = 2;
 	Bonuses = {
 		{ EAttributeType::ReloadSpeed, 0, 0.53 },
 		{ EAttributeType::Recoil, 0, -0.45 },
@@ -366,7 +419,9 @@ SMGAcc2Ruthless::SMGAcc2Ruthless() {
 }
 
 SMGAcc3Vector::SMGAcc3Vector() {
-	PartRarity = 2;
+	Name = "Vector";
+	PartRarity = 5;
+	PartNum = 3;
 	Bonuses = {
 		{ EAttributeType::FireRate, 0, 0.45 },
 		{ EAttributeType::ReloadSpeed, 0, 0.53 },
@@ -375,12 +430,49 @@ SMGAcc3Vector::SMGAcc3Vector() {
 }
 
 SMGAcc4Double::SMGAcc4Double() {
-	PartRarity = 3;
+	Name = "Double";
+	PartRarity = 4;
+	PartNum = 4;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, -0.18 },
 		{ EAttributeType::MagSize, 0, 0.2 },
 		{ EAttributeType::ProjectileCount, 1, 0 },
 		{ EAttributeType::ShotCost, 1, 0 },
 		{ EAttributeType::Spread, 0, 0.75 },
+	};
+}
+
+
+SMGTitleDefault::SMGTitleDefault() {
+	Title = "SMG";
+	Bonuses = {};
+}
+
+SMGTitleThumper::SMGTitleThumper() {
+	Title = "Thumper";
+	Bonuses = {};
+}
+
+SMGTitleAnarchy::SMGTitleAnarchy() {
+	Title = "Anarchy";
+	Bonuses = {
+		{ EAttributeType::MagSize, 0, 0.3 },
+		{ EAttributeType::ProjectileCount, 2, 0 },
+		{ EAttributeType::Spread, 0, 2.0 },
+	};
+}
+
+SMGTitleStinger::SMGTitleStinger() {
+	Title = "Stinger";
+	Bonuses = {
+		{ EAttributeType::Recoil, 0, -0.15 },
+		{ EAttributeType::MagSize, 3, 0.0 },
+	};
+}
+
+SMGTitleBruiser::SMGTitleBruiser() {
+	Title = "Bruiser";
+	Bonuses = {
+		{ EAttributeType::Damage, 0, 0.15 },
 	};
 }

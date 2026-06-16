@@ -8,7 +8,7 @@ void Projectile::_bind_methods() {
 }
 
 Projectile::Projectile() {
-	Speed = 400.f;
+	Speed = 500.f;
 }
 
 void Projectile::_ready() {

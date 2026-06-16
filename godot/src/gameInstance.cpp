@@ -28,7 +28,7 @@ void GameInstance::DebugSpawnGun(int32_t type) {
 	std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
 
 	if (type == 0) {
-		gundef->SetPistolStats();
+		gundef->SetRepeaterStats();
 	}
 	else if (type == 1) {
 		gundef->SetSMGStats();
@@ -64,7 +64,8 @@ void GameInstance::GenerateAndDropGun(int32_t type) {
 	}
 
 	if (type == 0) {
-		gundef->SetPistolStats();
+		gundef->SetRepeaterStats();
+		gundef->ApplyPartsBonuses();
 	}
 	else if (type == 1) {
 		gundef->SetSMGStats();
@@ -73,12 +74,15 @@ void GameInstance::GenerateAndDropGun(int32_t type) {
 		gundef->Magazine = GetRandomSMGMag();
 		gundef->Stock = GetRandomSMGStock();
 		gundef->Accessory = GetRandomSMGAccessory();
+		gundef->ApplyPartsBonuses();
+		gundef->Title = GetEligibleSMGTitle(gundef.get());
 	}
 	else {
 		gundef->SetARStats();
+		gundef->ApplyPartsBonuses();
 	}
 
-	gundef->ApplyPartsBonuses();
+	gundef->FinaliseGun();
 
 	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");
 

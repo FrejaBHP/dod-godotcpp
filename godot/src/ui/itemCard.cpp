@@ -32,7 +32,7 @@ Label* ItemCard::GetRowValueLabelByName(ECardRow row) {
 
 void ItemCard::UseGunDef(const GunDefinition& gundef) {
 	LName->add_theme_color_override("font_color", GetRarityColour(gundef.RarityScore));
-	LName->set_text(vformat("%s", GetGunTypeName(gundef.GunType).c_str()));
+	LName->set_text(vformat("%s", gundef.GunName.c_str()));
 
 	LGunType->set_text(vformat("%s :: %s", GetGunTypeName(gundef.GunType).c_str(), GetGunSubTypeName(gundef.GunSubType).c_str()));
 	LManufacturer->set_text(GetManufacturerName(gundef.Manufacturer).c_str());

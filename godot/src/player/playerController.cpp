@@ -140,7 +140,13 @@ void PlayerController::_physics_process(double delta) {
 			RecoverInaccuracy(delta);
 		}
 
-		DebugLabel->set_text(vformat("%.2f, %.2f, %d", ControlledPlayer->Inaccuracy, InaccuracyTimer->get_time_left(), int(CanRecoverInaccuracy)));
+		double spread = 0;
+
+		if (ControlledPlayer->GetCurrentGun()) {
+			spread = ControlledPlayer->GetCurrentGun()->GunDef->Spread;
+		}
+
+		DebugLabel->set_text(vformat("%.2f + %.2f, %.2f, %d", spread, ControlledPlayer->Inaccuracy, InaccuracyTimer->get_time_left(), int(CanRecoverInaccuracy)));
 		
 
 		/*

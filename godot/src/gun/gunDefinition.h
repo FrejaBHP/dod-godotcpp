@@ -13,16 +13,21 @@ public:
 	GunDefinition();
 	~GunDefinition();
 
-	void SetPistolStats();
+	void SetRepeaterStats();
 	void SetSMGStats();
 	void SetARStats();
 
 	void ApplyPartsBonuses();
+	void FinaliseGun();
 
 	EManufacturer Manufacturer { EManufacturer::Placeholder };
 	EGunType GunType { EGunType::None };
 	EGunSubType GunSubType { EGunSubType::None };
 	EGunRarity GunRarity { EGunRarity::Common };
+	EFireMode FireMode { EFireMode::Automatic };
+
+	std::string GunName { "" };
+	std::string DefaultPrefix { "" };
 
 	double BaseDamage { 0 };
 	int32_t BaseProjectileCount { 1 };
@@ -65,11 +70,13 @@ public:
 	std::unique_ptr<MagazineComponent> Magazine;
 	std::unique_ptr<StockComponent> Stock;
 	std::unique_ptr<AccessoryComponent> Accessory;
+	std::unique_ptr<TitleComponent> Title;
 
 	// Metadata
 	int32_t MetaMagAmmo { 0 };
 
 protected:
+	void CalculateStats();
 
 private:
 };

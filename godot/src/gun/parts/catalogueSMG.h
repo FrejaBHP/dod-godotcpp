@@ -2,12 +2,14 @@
 
 #include <memory>
 #include "gun/gunpart.h"
+#include "gun/gunDefinition.h"
 
 std::unique_ptr<BodyComponent> GetRandomSMGBody();
 std::unique_ptr<BarrelComponent> GetRandomSMGBarrel();
 std::unique_ptr<MagazineComponent> GetRandomSMGMag();
 std::unique_ptr<StockComponent> GetRandomSMGStock();
 std::unique_ptr<AccessoryComponent> GetRandomSMGAccessory();
+std::unique_ptr<TitleComponent> GetEligibleSMGTitle(GunDefinition* gundef);
 
 class SMGBody1 : public BodyComponent {
 public:
@@ -141,4 +143,30 @@ public:
 class SMGAcc4Double : public AccessoryComponent {
 public:
 	SMGAcc4Double();
+};
+
+
+class SMGTitleDefault : public TitleComponent {
+public:
+	SMGTitleDefault();
+};
+
+class SMGTitleThumper : public TitleComponent {
+public:
+	SMGTitleThumper();
+};
+
+class SMGTitleAnarchy : public TitleComponent {
+public:
+	SMGTitleAnarchy();
+};
+
+class SMGTitleStinger : public TitleComponent {
+public:
+	SMGTitleStinger();
+};
+
+class SMGTitleBruiser : public TitleComponent {
+public:
+	SMGTitleBruiser();
 };

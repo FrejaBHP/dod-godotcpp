@@ -3,10 +3,12 @@
 #include "shared/enums.h"
 #include "shared/attribute.h"
 #include <vector>
+#include <string>
 
 class GunPart {
 public:
 	int32_t PartRarity { 0 };
+	int32_t PartNum { 0 };
 	std::vector<Attribute> Bonuses;
 
 	GunPart() {}
@@ -44,5 +46,11 @@ class GripComponent : public GunPart {
 };
 
 class AccessoryComponent : public GunPart {
+public:
+	std::string Name { "" };
+};
 
+class TitleComponent : public GunPart {
+public:
+	std::string Title { "" };
 };
