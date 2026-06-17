@@ -9,7 +9,6 @@ std::unique_ptr<BarrelComponent> GetRandomSMGBarrel();
 std::unique_ptr<MagazineComponent> GetRandomSMGMag();
 std::unique_ptr<StockComponent> GetRandomSMGStock();
 std::unique_ptr<AccessoryComponent> GetRandomSMGAccessory();
-std::unique_ptr<TitleComponent> GetEligibleSMGTitle(GunDefinition* gundef);
 
 class SMGBody1 : public BodyComponent {
 public:

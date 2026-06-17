@@ -13,11 +13,13 @@ public:
 	GunDefinition();
 	~GunDefinition();
 
+	virtual void AssembleRandomGun();
+
 	void SetRepeaterStats();
 	void SetSMGStats();
 	void SetARStats();
 
-	void ApplyPartsBonuses();
+	virtual void ApplyPartsBonuses();
 	void FinaliseGun();
 
 	EManufacturer Manufacturer { EManufacturer::Placeholder };
@@ -76,6 +78,7 @@ public:
 	int32_t MetaMagAmmo { 0 };
 
 protected:
+	virtual std::unique_ptr<TitleComponent> GetEligibleTitle();
 	void CalculateStats();
 
 private:

@@ -157,28 +157,6 @@ std::unique_ptr<AccessoryComponent> GetRandomSMGAccessory() {
 	return std::unique_ptr<AccessoryComponent>(acc);
 }
 
-std::unique_ptr<TitleComponent> GetEligibleSMGTitle(GunDefinition* gundef) {
-	TitleComponent* title;
-
-	if (gundef->Magazine->PartNum == 1) {
-		title = new SMGTitleThumper();
-	}
-	else if (gundef->Accessory->PartNum == 4 && gundef->Accuracy <= 70.0) {
-		title = new SMGTitleAnarchy();
-	}
-	else if (gundef->FireTime <= 83) {
-		title = new SMGTitleStinger();
-	}
-	else if (gundef->AttrBonuses[EAttributeType::Damage].Scale >= 0.33) {
-		title = new SMGTitleBruiser();
-	}
-	else {
-		title = new SMGTitleDefault();
-	}
-
-	return std::unique_ptr<TitleComponent>(title);
-}
-
 
 SMGBody1::SMGBody1() {
 	PartNum = 1;

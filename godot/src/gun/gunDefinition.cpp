@@ -5,7 +5,7 @@
 GunDefinition::GunDefinition() {
 
 }
-
+// Forældet, gemt til ældre debug kommando - fjern senere
 void GunDefinition::SetRepeaterStats() {
 	GunType = EGunType::Pistol;
 	GunSubType = EGunSubType::Repeater;
@@ -60,6 +60,9 @@ void GunDefinition::SetARStats() {
 	BaseInaccuracyRegen = 8;
 }
 
+void GunDefinition::AssembleRandomGun() {}
+std::unique_ptr<TitleComponent> GunDefinition::GetEligibleTitle() { return nullptr; }
+
 void GunDefinition::ApplyPartsBonuses() {
 	if (Material.get() != nullptr) {
 		for (size_t i = 0; i < Material->Bonuses.size(); i++) {
@@ -110,6 +113,7 @@ void GunDefinition::ApplyPartsBonuses() {
 		RarityScore += Accessory->PartRarity;
 	}
 
+	// FIXME: Skal fjernes senere
 	CalculateStats();
 }
 
@@ -169,7 +173,7 @@ void GunDefinition::CalculateStats() {
 	MinInaccuracy = (BaseMinInaccuracy + AttrBonuses[EAttributeType::InaccuracyMin].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::InaccuracyMin].Scale);
 	MaxInaccuracy = (BaseMaxInaccuracy + AttrBonuses[EAttributeType::InaccuracyMax].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::InaccuracyMax].Scale);
 
-	InaccuracyRegen = BaseInaccuracyRegen;
+	InaccuracyRegen = (BaseInaccuracyRegen + AttrBonuses[EAttributeType::InaccuracyRegen].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::InaccuracyRegen].Scale);
 	InaccuracyRegenDelay = BaseInaccuracyRegenDelay;
 
 	//Accuracy = 100 - (12 * Spread);

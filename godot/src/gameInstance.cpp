@@ -11,8 +11,10 @@
 #include "world.h"
 #include "gun/gun.h"
 
+#include "gun/types/gdSMG.h"
+#include "gun/types/gdPistol.h"
+
 #include "gun/parts/catalogueMaterials.h"
-#include "gun/parts/catalogueSMG.h"
 
 using namespace godot;
 
@@ -51,7 +53,17 @@ void GameInstance::DebugSpawnGun(int32_t type) {
 }
 
 void GameInstance::GenerateAndDropGun(int32_t type) {
-	std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
+	std::shared_ptr<GunDefinition> gundef;
+
+	if (type == 0) {
+		gundef = std::make_shared<GDPistol>();
+	}
+	else if (type == 1) {
+		gundef = std::make_shared<GDSMG>();
+	}
+	else {
+		gundef = std::make_shared<GunDefinition>();
+	}
 
 	int32_t manuIndex = GetRandomInt(0, (int32_t)EManufacturer::COUNT - 1);
 	EManufacturer manufacturer = (EManufacturer)manuIndex;
@@ -64,18 +76,10 @@ void GameInstance::GenerateAndDropGun(int32_t type) {
 	}
 
 	if (type == 0) {
-		gundef->SetRepeaterStats();
-		gundef->ApplyPartsBonuses();
+		gundef->AssembleRandomGun();
 	}
 	else if (type == 1) {
-		gundef->SetSMGStats();
-		gundef->Barrel = GetRandomSMGBarrel();
-		gundef->Body = GetRandomSMGBody();
-		gundef->Magazine = GetRandomSMGMag();
-		gundef->Stock = GetRandomSMGStock();
-		gundef->Accessory = GetRandomSMGAccessory();
-		gundef->ApplyPartsBonuses();
-		gundef->Title = GetEligibleSMGTitle(gundef.get());
+		gundef->AssembleRandomGun();
 	}
 	else {
 		gundef->SetARStats();

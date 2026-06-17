@@ -56,6 +56,8 @@ bool Gun::TryPrimaryFire() {
 		LastFired = now;
 		return true;
 	}
+
+	return false;
 }
 
 void Gun::PrimaryFire() {

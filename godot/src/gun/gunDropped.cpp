@@ -35,9 +35,12 @@ void GunDropped::SetupDroppedGun(std::shared_ptr<GunDefinition> gundef) {
 	Ref<Texture2D> texture;
 
 	if (GunDef->GunType == EGunType::Pistol) {
+		texture = loader->load("res://assets/pistol.png");
+		/*
 		if (GunDef->GunSubType == EGunSubType::Repeater) {
 			texture = loader->load("res://assets/pistol.png");
 		}
+		*/
 	}
 	else if (GunDef->GunType == EGunType::SMG) {
 		texture = loader->load("res://assets/mp5.png");
