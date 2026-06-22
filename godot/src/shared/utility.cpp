@@ -26,35 +26,35 @@ godot::Color GetRarityColour(int32_t rarity) {
 
 	// 0 - 5: White/Common
 	if (rarity < 6) {
-		rarityColour = godot::Color(1.f, 1.f, 1.f, 1.f);
+		rarityColour = godot::Color(0.6f, 0.6f, 0.6f, 1.f);
 	}
 	// 6 - 12: Green/Uncommon
 	else if (rarity < 13) {
-		rarityColour = godot::Color(0.f, 1.f, 0.f, 1.f);
+		rarityColour = godot::Color(0.25f, 0.85f, 0.05f, 1.f);
 	}
 	// 13 - 18: Blue/Rare
 	else if (rarity < 19) {
-		rarityColour = godot::Color(0.f, 0.f, 1.f, 1.f);
+		rarityColour = godot::Color(0.2f, 0.45f, 1.f, 1.f);
 	}
 	// 19 - 50: Purple/Epic
 	else if (rarity < 51) {
-		rarityColour = godot::Color(1.f, 0.f, 1.f, 1.f);
+		rarityColour = godot::Color(0.67f, 0.25f, 1.f, 1.f);
 	}
 	// 51 - 60: Yellow/Unique
 	else if (rarity < 61) {
-		rarityColour = godot::Color(1.f, 1.f, 0.f, 1.f);
+		rarityColour = godot::Color(1.f, 1.f, 0.25f, 1.f);
 	}
 	// 61 - 70: Orange/Legendary
 	else if (rarity < 71) {
-		rarityColour = godot::Color(1.f, 0.5f, 0.f, 1.f);
+		rarityColour = godot::Color(1.f, 0.6f, 0.f, 1.f);
 	}
 	// 71 - 100: Dark Orange/Higher tier legendary
 	else if (rarity < 101) {
-		rarityColour = godot::Color(1.f, 0.4f, 0.f, 1.f);
+		rarityColour = godot::Color(0.85f, 0.45f, 0.f, 1.f);
 	}
 	// 101+: Pearlescent
 	else {
-		rarityColour = godot::Color(0.5f, 1.f, 1.f, 1.f);
+		rarityColour = godot::Color(0.f, 1.f, 1.f, 1.f);
 	}
 
 	return rarityColour;

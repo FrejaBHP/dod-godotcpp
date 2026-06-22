@@ -1,6 +1,13 @@
 #pragma once
 
-// Taget fra tidligere kort projekt - skal nok laves lidt om i senere
+
+enum class EAlignment {
+	Neutral,
+	Player,
+	Enemies
+};
+
+
 enum class EAttributeType {
 	Damage,
 	ProjectileCount,

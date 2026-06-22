@@ -5,9 +5,6 @@
 using namespace godot;
 
 void Player::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("ApplyMovement"), &Player::ApplyMovement);
-	ClassDB::bind_method(D_METHOD("GetMaxSpeed"), &Player::GetMaxSpeed);
-
 	ClassDB::bind_method(D_METHOD("SetController"), &Player::SetController);
 	ClassDB::bind_method(D_METHOD("GetController"), &Player::GetController);
 
@@ -29,53 +26,14 @@ Player::Player() {
 }
 
 void Player::_ready() {
+	Alignment = EAlignment::Player;
+
 	PlayerController* newController = memnew(PlayerController);
 	
 	if (newController) {
 		add_child(newController);
 		SetController(newController);
 	}
-
-	/*
-	Ref<PackedScene> gunScene = ResLoader->load("res://gun.tscn");
-
-	if (gunScene->can_instantiate()) {
-		if (GWorld && GPlayer) {
-			Gun* newGun = static_cast<Gun*>(gunScene->instantiate());
-			newGun->BuildGun(dgun->GunDef);
-			newGun->MagAmmo = newGun->GunDef->MetaMagAmmo;
-			GPlayer->add_child(newGun);
-
-			return newGun;
-		}
-	}
-	*/
-
-	/*
-	for (size_t i = 0; i < PlayerNumGunSlots; i++) {
-		std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
-
-		if (i == 0) {
-			gundef->SetRepeaterStats();
-		}
-		else if (i == 1) {
-			gundef->SetSMGStats();
-		}
-		else {
-			gundef->SetARStats();
-		}
-
-		Gun* newGun = memnew(Gun);
-
-		if (newGun) {
-			newGun->BuildGun(gundef);
-			add_child(newGun);
-			SetGunInSlot(i, newGun);
-		}
-
-		SwitchToGunInSlot(0);
-	}
-	*/
 }
 
 void Player::_process(double delta) {
@@ -84,16 +42,6 @@ void Player::_process(double delta) {
 
 void Player::_physics_process(double delta) {
 	
-}
-
-void Player::ApplyMovement(Vector2 movement) {
-	Vector2 velocity = Vector2(movement.x * MaxSpeed, movement.y * MaxSpeed);
-	set_velocity(velocity);
-	move_and_slide();
-}
-
-double Player::GetMaxSpeed() const {
-	return MaxSpeed;
 }
 
 void Player::SetController(PlayerController* controller) {
@@ -107,10 +55,10 @@ PlayerController* Player::GetController() const {
 
 void Player::SetGunInSlot(int32_t slot, Gun* gun) {
 	GunSlots[slot] = gun;
-	gun->OwningPlayer = this;
+	gun->OwningCharacter = this;
 }
 
-Gun* Player::GetGunInSlot(int32_t slot) {
+Gun* Player::GetGunInSlot(int32_t slot) const {
 	return GunSlots[slot];
 }
 

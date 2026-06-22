@@ -62,6 +62,10 @@ protected:
 	void GunReloadStart(Gun* gun);
 	void ProcessReload(double delta);
 
+	void OnGunFired();
+	void BindGun(Gun* gun);
+	void UnbindGun(Gun* gun);
+
 	Player* ControlledPlayer = nullptr;
 	Node2D* PlayerCrosshair = nullptr;
 	Label* DebugLabel = nullptr;

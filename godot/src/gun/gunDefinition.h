@@ -38,6 +38,7 @@ public:
 	int32_t BaseMagSize { 0 };
 	double BaseReloadTime { 0.0 }; // In seconds
 	double BaseProjectileSpeed { 500.0 };
+	int32_t BaseBurstCount { 3 };
 
 	double BaseSpread { 0.0 };
 	double BaseRecoil { 0.0 };
@@ -53,6 +54,7 @@ public:
 	int32_t MagSize { 0 };
 	double ReloadTime { 0.0 };
 	double ProjectileSpeed { 500.0 };
+	int32_t BurstCount { 3 };
 
 	double Spread { 0.0 };
 	double Recoil { 0.0 };

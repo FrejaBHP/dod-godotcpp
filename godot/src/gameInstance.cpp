@@ -53,7 +53,7 @@ void GameInstance::DebugSpawnGun(int32_t type) {
 	}
 }
 
-void GameInstance::GenerateAndDropGun(int32_t type) {
+std::shared_ptr<GunDefinition> GameInstance::GenerateGunDef(int32_t type) {
 	std::shared_ptr<GunDefinition> gundef;
 
 	if (type == 0) {
@@ -78,6 +78,12 @@ void GameInstance::GenerateAndDropGun(int32_t type) {
 
 	gundef->AssembleRandomGun();
 	gundef->FinaliseGun();
+
+	return gundef;
+}
+
+void GameInstance::GenerateAndDropGun(int32_t type) {
+	std::shared_ptr<GunDefinition> gundef = GenerateGunDef(type);
 
 	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");
 

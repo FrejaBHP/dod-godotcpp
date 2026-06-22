@@ -2,6 +2,7 @@
 
 #include <godot_cpp/classes/area2d.hpp>
 #include <godot_cpp/classes/timer.hpp>
+#include "shared/enums.h"
 
 using namespace godot;
 
@@ -15,6 +16,7 @@ public:
 	void _ready() override;
 	void _physics_process(double delta) override;
 	void SetSpeed(float speed);
+	void UpdateMasks(EAlignment alignment);
 
 protected:
 	static void _bind_methods();

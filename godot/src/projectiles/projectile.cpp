@@ -16,13 +16,13 @@ void Projectile::_ready() {
 	Timer* timer = get_node<Timer>("Timer");
 	if (timer) {
 		LifeTimer = timer;
-		LifeTimer->connect("timeout", callable_mp(this, &Projectile::Remove), CONNECT_DEFERRED);
+		LifeTimer->connect("timeout", callable_mp(this, &Projectile::Remove));
 
 		LifeTimer->set_wait_time(2.5);
 		LifeTimer->start();
 	}
 
-	connect("body_entered", callable_mp(this, &Projectile::BodyEntered), CONNECT_DEFERRED);
+	connect("body_entered", callable_mp(this, &Projectile::BodyEntered));
 }
 
 void Projectile::_physics_process(double delta) {
@@ -38,6 +38,19 @@ void Projectile::BodyEntered(Node2D* body) {
 
 void Projectile::SetSpeed(float speed) {
 	Speed = speed;
+}
+
+void Projectile::UpdateMasks(EAlignment alignment) {
+	if (alignment == EAlignment::Player) {
+		set_collision_mask_value(5, true);
+	}
+	else if (alignment == EAlignment::Enemies) {
+		set_collision_mask_value(1, true);
+	}
+	else {
+		set_collision_mask_value(1, true);
+		set_collision_mask_value(5, true);
+	}
 }
 
 void Projectile::Remove() {

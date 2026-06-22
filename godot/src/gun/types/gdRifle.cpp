@@ -11,6 +11,7 @@ void GDRifle::AssembleRandomGun() {
 
 	if (subtype == 0) {
 		GunSubType = EGunSubType::CombatRifle;
+		FireMode = EFireMode::Burst;
 		DefaultPrefix = "Combat";
 
 		BaseDamage = 6.0;
@@ -29,9 +30,14 @@ void GDRifle::AssembleRandomGun() {
 		Stock = GetRandomCRStock();
 		Magazine = GetRandomCRMag();
 		Accessory = GetRandomCRAcc();
+
+		if (Magazine->PartNum == 2) {
+			FireMode = EFireMode::Semi;
+		}
 	}
 	else {
 		GunSubType = EGunSubType::MachineGun;
+		FireMode = EFireMode::Automatic;
 		DefaultPrefix = "Combat";
 
 		BaseDamage = 6.0;

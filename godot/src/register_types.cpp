@@ -6,8 +6,11 @@
 #include <godot_cpp/godot.hpp>
 
 #include "world.h"
+#include "character.h"
 #include "player/playerChar.h"
 #include "player/playerController.h"
+#include "enemies/enemyGun.h"
+#include "enemies/enemyController.h"
 #include "projectiles/projectile.h"
 #include "gun/gun.h"
 #include "gun/gunDropped.h"
@@ -23,8 +26,14 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level) {
 
 	GDREGISTER_RUNTIME_CLASS(World);
 
+	GDREGISTER_RUNTIME_CLASS(Character);
+
 	GDREGISTER_RUNTIME_CLASS(Player);
 	GDREGISTER_RUNTIME_CLASS(PlayerController);
+
+	GDREGISTER_RUNTIME_CLASS(EnemyGun);
+	GDREGISTER_RUNTIME_CLASS(EnemyController);
+
 	GDREGISTER_RUNTIME_CLASS(HUD);
 	GDREGISTER_RUNTIME_CLASS(ItemCard);
 

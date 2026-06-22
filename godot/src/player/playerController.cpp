@@ -37,6 +37,10 @@ void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("PickupTimerTimeout"), &PlayerController::PickupTimerTimeout);
 	ClassDB::bind_method(D_METHOD("ScanForGuns"), &PlayerController::ScanForGuns);
 	ClassDB::bind_method(D_METHOD("GetClosestGunDropped"), &PlayerController::GetClosestGunDropped);
+
+	ClassDB::bind_method(D_METHOD("ApplyRecoil"), &PlayerController::ApplyRecoil);
+	ClassDB::bind_method(D_METHOD("OnGunFired"), &PlayerController::OnGunFired);
+	ClassDB::bind_method(D_METHOD("ReloadEnd"), &PlayerController::GunReloadEnd);
 }
 
 PlayerController::PlayerController() {
@@ -49,6 +53,13 @@ void PlayerController::_ready() {
 
 void PlayerController::_input(const Ref<InputEvent>& p_event) {
 	if (p_event.ptr()->is_action_pressed("lmb")) {
+		if (!isLMBHeld) {
+			Gun* currentGun = ControlledPlayer->GetCurrentGun();
+
+			if (currentGun && currentGun->GunDef->FireMode != EFireMode::Automatic && !IsReloading) {
+				currentGun->TryPrimaryFire(ControlledPlayer->get_global_position(), GetCrosshair()->get_global_position());
+			}
+		}
 		isLMBHeld = true;
 	}
 	else if (p_event.ptr()->is_action_released("lmb")) {
@@ -133,8 +144,8 @@ void PlayerController::_physics_process(double delta) {
 		if (isLMBHeld) {
 			Gun* currentGun = ControlledPlayer->GetCurrentGun();
 
-			if (currentGun && !IsReloading) {
-				currentGun->TryPrimaryFire();
+			if (currentGun && currentGun->GunDef->FireMode == EFireMode::Automatic && !IsReloading) {
+				currentGun->TryPrimaryFire(ControlledPlayer->get_global_position(), GetCrosshair()->get_global_position());
 			}
 		}
 
@@ -272,6 +283,8 @@ void PlayerController::PickUpGunInSlot(int32_t slot) {
 	DroppedGunInFocus->queue_free();
 	DroppedGunInFocus = nullptr;
 
+	BindGun(newGun);
+
 	ControlledPlayer->SetGunInSlot(slot, newGun);
 
 	if (slot == GetCurrentGunSlot()) {
@@ -298,6 +311,8 @@ void PlayerController::SwapGunOnGround() {
 	DroppedGunInFocus->queue_free();
 	DroppedGunInFocus = nullptr;
 
+	BindGun(newGun);
+
 	ControlledPlayer->SetGunInSlot(GetCurrentGunSlot(), newGun);
 	ControlledPlayer->SwitchToGunInSlot(GetCurrentGunSlot());
 
@@ -306,6 +321,16 @@ void PlayerController::SwapGunOnGround() {
 	oldGun->queue_free();
 
 	UpdateAmmoLabel();
+}
+
+void PlayerController::BindGun(Gun* gun) {
+	gun->connect("gun_fired", callable_mp(this, &PlayerController::OnGunFired));
+	gun->connect("gun_reload_ended", callable_mp(this, &PlayerController::GunReloadEnd));
+}
+
+void PlayerController::UnbindGun(Gun* gun) {
+	gun->disconnect("gun_fired", callable_mp(this, &PlayerController::OnGunFired));
+	gun->disconnect("gun_reload_ended", callable_mp(this, &PlayerController::GunReloadEnd));
 }
 
 void PlayerController::ApplyCurrentGun() {
@@ -336,6 +361,12 @@ void PlayerController::ProcessReload(double delta) {
 void PlayerController::GunReloadEnd() {
 	IsReloading = false;
 	ReloadBar->set_visible(false);
+	UpdateAmmoLabel();
+}
+
+void PlayerController::OnGunFired() {
+	ApplyRecoil();
+	UpdateAmmoLabel();
 }
 
 void PlayerController::ApplyRecoil() {

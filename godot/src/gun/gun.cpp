@@ -3,7 +3,7 @@
 #include <godot_cpp/classes/window.hpp>
 
 #include "gun/gun.h"
-#include "player/playerChar.h"
+#include "character.h"
 #include "player/playerController.h"
 #include "projectiles/projectile.h"
 #include "shared/utility.h"
@@ -11,8 +11,11 @@
 using namespace godot;
 
 void Gun::_bind_methods() {
+	ADD_SIGNAL(MethodInfo("gun_fired"));
+	ADD_SIGNAL(MethodInfo("gun_reload_ended"));
+
 	ClassDB::bind_method(D_METHOD("TryPrimaryFire"), &Gun::TryPrimaryFire);
-	ClassDB::bind_method(D_METHOD("PrimaryFire"), &Gun::PrimaryFire);
+	ClassDB::bind_method(D_METHOD("PrimaryFire"), &Gun::PrimaryFireSingle);
 	ClassDB::bind_method(D_METHOD("TryReload"), &Gun::TryReload);
 	ClassDB::bind_method(D_METHOD("Reload"), &Gun::FinishReload);
 }
@@ -37,7 +40,9 @@ void Gun::_process(double delta) {
 }
 
 void Gun::_physics_process(double delta) {
+	if (IsFiringBurst) {
 
+	}
 }
 
 void Gun::BuildGun(std::shared_ptr<GunDefinition> gundef) {
@@ -46,7 +51,7 @@ void Gun::BuildGun(std::shared_ptr<GunDefinition> gundef) {
 }
 
 
-bool Gun::TryPrimaryFire() {
+bool Gun::TryPrimaryFire(const Vector2 from, const Vector2 towards) {
 	if (MagAmmo < 1) {
 		return false;
 	}
@@ -56,15 +61,26 @@ bool Gun::TryPrimaryFire() {
 	long long difference = duration_cast<milliseconds>(now - LastFired).count();
 
 	if (difference > GunDef->FireTime) {
-		PrimaryFire();
+		PrimaryFireSingle(from, towards);
 		LastFired = now;
+
+		/*
+		if (GunDef->FireMode != EFireMode::Burst) {
+			PrimaryFireSingle(from, towards);
+			LastFired = now;
+		}
+		else {
+			PrimaryFireBurst(from, towards);
+		}
+		*/
+		
 		return true;
 	}
 
 	return false;
 }
 
-void Gun::PrimaryFire() {
+void Gun::PrimaryFireSingle(const Vector2 from, const Vector2 towards) {
 	if (ProjectileScene->can_instantiate()) {
 		Node2D* world = get_tree()->get_root()->get_node<Node2D>("World");
 
@@ -74,8 +90,10 @@ void Gun::PrimaryFire() {
 				proj->SetSpeed((float)GunDef->ProjectileSpeed);
 				world->add_child(proj);
 
-				proj->set_global_position(OwningPlayer->get_global_position());
-				proj->look_at(OwningPlayer->GetController()->GetCrosshair()->get_global_position());
+				proj->UpdateMasks(OwningCharacter->Alignment);
+
+				proj->set_global_position(from);
+				proj->look_at(towards);
 
 				AdjustFiringAngle(proj);
 			}
@@ -87,14 +105,51 @@ void Gun::PrimaryFire() {
 				MagAmmo -= GunDef->ShotCost;
 			}
 
-			OwningPlayer->GetController()->ApplyRecoil();
-			OwningPlayer->GetController()->UpdateAmmoLabel();
+			emit_signal("gun_fired");
+		}
+	}
+}
+
+// Skal omtænkes, brug ikke. Gør måske async?
+// Ellers så lav en metode (gerne virtuel) i Character, hvor man kan få position og mål, og så kør logik i physics_process
+void Gun::PrimaryFireBurst(const Vector2 from, const Vector2 towards) {
+	if (ProjectileScene->can_instantiate()) {
+		Node2D* world = get_tree()->get_root()->get_node<Node2D>("World");
+
+		if (world) {
+			for (size_t b = 0; b < GunDef->BurstCount; b++) {
+				if (MagAmmo == 0) {
+					break;
+				}
+
+				for (size_t i = 0; i < GunDef->ProjectileCount; i++) {
+					Projectile* proj = static_cast<Projectile*>(ProjectileScene->instantiate());
+					proj->SetSpeed((float)GunDef->ProjectileSpeed);
+					world->add_child(proj);
+
+					proj->UpdateMasks(OwningCharacter->Alignment);
+
+					proj->set_global_position(from);
+					proj->look_at(towards);
+
+					AdjustFiringAngle(proj);
+				}
+
+				if (GunDef->ShotCost > MagAmmo) {
+					MagAmmo = 0;
+				}
+				else {
+					MagAmmo -= GunDef->ShotCost;
+				}
+
+				emit_signal("gun_fired");
+			}
 		}
 	}
 }
 
 void Gun::AdjustFiringAngle(Node2D* node) const {
-	double maxAngle = OwningPlayer->Inaccuracy + GunDef->Spread;
+	double maxAngle = OwningCharacter->Inaccuracy + GunDef->Spread;
 	double randomAngle = GetRandomDouble(-maxAngle, maxAngle);
 
 	double rad = godot::Math::deg_to_rad(randomAngle);
@@ -105,13 +160,13 @@ bool Gun::TryReload() {
 	// Dirty hacky stuff
 	int32_t reserveAmmo;
 	if (GunDef->GunType == EGunType::Pistol) {
-		reserveAmmo = OwningPlayer->PistolAmmo;
+		reserveAmmo = OwningCharacter->PistolAmmo;
 	}
 	else if (GunDef->GunType == EGunType::SMG) {
-		reserveAmmo = OwningPlayer->SMGAmmo;
+		reserveAmmo = OwningCharacter->SMGAmmo;
 	}
 	else {
-		reserveAmmo = OwningPlayer->ARAmmo;
+		reserveAmmo = OwningCharacter->ARAmmo;
 	}
 
 
@@ -119,7 +174,7 @@ bool Gun::TryReload() {
 		return false;
 	}
 
-	if (reserveAmmo > 0) {
+	if (reserveAmmo > 0 || reserveAmmo == -1) {
 		StartReload();
 		return true;
 	}
@@ -140,13 +195,13 @@ void Gun::FinishReload() {
 	// Dirty hacky stuff
 	int32_t* reserveAmmo;
 	if (GunDef->GunType == EGunType::Pistol) {
-		reserveAmmo = &OwningPlayer->PistolAmmo;
+		reserveAmmo = &OwningCharacter->PistolAmmo;
 	}
 	else if (GunDef->GunType == EGunType::SMG) {
-		reserveAmmo = &OwningPlayer->SMGAmmo;
+		reserveAmmo = &OwningCharacter->SMGAmmo;
 	}
 	else {
-		reserveAmmo = &OwningPlayer->ARAmmo;
+		reserveAmmo = &OwningCharacter->ARAmmo;
 	}
 
 	// When there is enough ammo for a full reload
@@ -161,7 +216,9 @@ void Gun::FinishReload() {
 		MagAmmo = *reserveAmmo;
 		*reserveAmmo = 0;
 	}
+	else if (*reserveAmmo == -1) {
+		MagAmmo = GunDef->MagSize;
+	}
 
-	OwningPlayer->GetController()->GunReloadEnd();
-	OwningPlayer->GetController()->UpdateAmmoLabel();
+	emit_signal("gun_reload_ended");
 }

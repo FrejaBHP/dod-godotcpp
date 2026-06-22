@@ -9,7 +9,7 @@
 using namespace godot;
 using namespace std::chrono;
 
-class Player;
+class Character;
 
 class Gun : public Node2D {
 	GDCLASS(Gun, Node2D)
@@ -24,20 +24,21 @@ public:
 
 	virtual void BuildGun(std::shared_ptr<GunDefinition> gundef);
 
-	bool TryPrimaryFire();
+	bool TryPrimaryFire(const Vector2 from, const Vector2 towards);
 	bool TryReload();
 
 	// Burde måske være en shared ptr
 	std::shared_ptr<GunDefinition> GunDef = nullptr;
 
-	Player* OwningPlayer = nullptr;
+	Character* OwningCharacter = nullptr;
 	Timer* ReloadTimer = nullptr;
 
 	int32_t MagAmmo { 0 };
 
 protected:
 	static void _bind_methods();
-	virtual void PrimaryFire();
+	virtual void PrimaryFireSingle(const Vector2 from, const Vector2 towards);
+	virtual void PrimaryFireBurst(const Vector2 from, const Vector2 towards);
 	virtual void StartReload();
 	virtual void FinishReload();
 	void AdjustFiringAngle(Node2D* node) const;
@@ -45,6 +46,8 @@ protected:
 
 	steady_clock::time_point LastFired;
 	Ref<PackedScene> ProjectileScene = nullptr;
+	bool IsFiringBurst = false;
+	int32_t RemainingBurstCount = 0;
 
 private:
 
