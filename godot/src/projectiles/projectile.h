@@ -14,6 +14,7 @@ public:
 
 	void _ready() override;
 	void _physics_process(double delta) override;
+	void SetSpeed(float speed);
 
 protected:
 	static void _bind_methods();
@@ -21,7 +22,7 @@ protected:
 	void Remove();
 
 	Timer* LifeTimer = nullptr;
-	float Speed;
+	float Speed { 0.f };
 
 private:
 

@@ -5,10 +5,11 @@ using namespace godot;
 void Projectile::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("BodyEntered"), &Projectile::BodyEntered);
 	ClassDB::bind_method(D_METHOD("Remove"), &Projectile::Remove);
+	ClassDB::bind_method(D_METHOD("SetSpeed"), &Projectile::SetSpeed);
 }
 
 Projectile::Projectile() {
-	Speed = 500.f;
+	
 }
 
 void Projectile::_ready() {
@@ -17,7 +18,7 @@ void Projectile::_ready() {
 		LifeTimer = timer;
 		LifeTimer->connect("timeout", callable_mp(this, &Projectile::Remove), CONNECT_DEFERRED);
 
-		LifeTimer->set_wait_time(1);
+		LifeTimer->set_wait_time(2.5);
 		LifeTimer->start();
 	}
 
@@ -33,6 +34,10 @@ void Projectile::_physics_process(double delta) {
 void Projectile::BodyEntered(Node2D* body) {
 	LifeTimer->stop();
 	Remove();
+}
+
+void Projectile::SetSpeed(float speed) {
+	Speed = speed;
 }
 
 void Projectile::Remove() {

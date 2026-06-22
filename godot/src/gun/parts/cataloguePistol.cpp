@@ -7,7 +7,7 @@ constexpr int32_t NumActions = 5;
 constexpr int32_t NumRepeaterMags = 3;
 constexpr int32_t NumMPMags = 2;
 constexpr int32_t NumRepeaterAccs = 4;
-constexpr int32_t NumMPAccs = 5;
+constexpr int32_t NumMPAccs = 6;
 
 std::unique_ptr<BodyComponent> GetRandomPistolBody() {
 	int32_t bodyIndex = GetRandomInt(0, NumBodies - 1);
@@ -178,6 +178,10 @@ std::unique_ptr<AccessoryComponent> GetRandomMPAccessory() {
 
 		case 4:
 			acc = new MPAcc4Rage();
+			break;
+
+		case 5:
+			acc = new MPAcc5Cold();
 			break;
 
 		default:
@@ -418,6 +422,20 @@ MPAcc4Rage::MPAcc4Rage() {
 	Bonuses = {
 		{ EAttributeType::FireRate, 0, 1.0 },
 		{ EAttributeType::Recoil, 0, 1.0 },
+	};
+}
+
+MPAcc5Cold::MPAcc5Cold() {
+	Name = "Cold";
+	PartNum = 5;
+	PartRarity = 3;
+	Bonuses = {
+		// +4 Tech
+		// +200% knockback
+		{ EAttributeType::Damage, 0, 0.7 },
+		{ EAttributeType::Recoil, 0, -1.0 },
+		{ EAttributeType::InaccuracyRegen, 0, 1.0 },
+		{ EAttributeType::ProjectileSpeed, 0, -3.0 },
 	};
 }
 

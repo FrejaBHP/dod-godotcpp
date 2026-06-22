@@ -6,10 +6,14 @@
 
 std::unique_ptr<BodyComponent> GetRandomCRBody();
 std::unique_ptr<BodyComponent> GetRandomMGBody();
+std::unique_ptr<BarrelComponent> GetRandomCRBarrel();
+std::unique_ptr<BarrelComponent> GetRandomMGBarrel();
 std::unique_ptr<StockComponent> GetRandomCRStock();
 std::unique_ptr<StockComponent> GetRandomMGStock();
 std::unique_ptr<MagazineComponent> GetRandomCRMag();
 std::unique_ptr<MagazineComponent> GetRandomMGMag();
+std::unique_ptr<AccessoryComponent> GetRandomCRAcc();
+std::unique_ptr<AccessoryComponent> GetRandomMGAcc();
 
 class ARBody1CR : public BodyComponent {
 public:
@@ -34,6 +38,32 @@ public:
 class ARBody4 : public BodyComponent {
 public:
 	ARBody4();
+};
+
+
+class ARBarrel1CR : public BarrelComponent {
+public:
+	ARBarrel1CR();
+};
+
+class ARBarrel1MG : public BarrelComponent {
+public:
+	ARBarrel1MG();
+};
+
+class ARBarrel2 : public BarrelComponent {
+public:
+	ARBarrel2();
+};
+
+class ARBarrel3 : public BarrelComponent {
+public:
+	ARBarrel3();
+};
+
+class ARBarrel4 : public BarrelComponent {
+public:
+	ARBarrel4();
 };
 
 
@@ -99,6 +129,31 @@ public:
 };
 
 
+class ARAcc0None : public AccessoryComponent {
+public:
+	ARAcc0None();
+};
+
+class ARAcc1Deathly : public AccessoryComponent {
+public:
+	ARAcc1Deathly();
+};
+
+class CRAcc2Intense : public AccessoryComponent {
+public:
+	CRAcc2Intense();
+};
+
+class MGAcc2Frantic : public AccessoryComponent {
+public:
+	MGAcc2Frantic();
+};
+
+class MGAcc3Shattering : public AccessoryComponent {
+public:
+	MGAcc3Shattering();
+};
+
 
 class CRTitleDefault : public TitleComponent {
 public:
@@ -110,7 +165,32 @@ public:
 	CRTitlePounder();
 };
 
+class CRTitleCobra : public TitleComponent {
+public:
+	CRTitleCobra();
+};
+
+class CRTitleStomper : public TitleComponent {
+public:
+	CRTitleStomper();
+};
+
 class MGTitleDefault : public TitleComponent {
 public:
 	MGTitleDefault();
+};
+
+class MGTitleMauler : public TitleComponent {
+public:
+	MGTitleMauler();
+};
+
+class MGTitleHavoc : public TitleComponent {
+public:
+	MGTitleHavoc();
+};
+
+class MGTitleMassacre : public TitleComponent {
+public:
+	MGTitleMassacre();
 };

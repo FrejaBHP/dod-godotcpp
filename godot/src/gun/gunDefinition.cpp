@@ -176,7 +176,7 @@ void GunDefinition::CalculateStats() {
 	InaccuracyRegen = (BaseInaccuracyRegen + AttrBonuses[EAttributeType::InaccuracyRegen].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::InaccuracyRegen].Scale);
 	InaccuracyRegenDelay = BaseInaccuracyRegenDelay;
 
-	//Accuracy = 100 - (12 * Spread);
+	ProjectileSpeed = (BaseProjectileSpeed + AttrBonuses[EAttributeType::ProjectileSpeed].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::ProjectileSpeed].Scale);
 	Accuracy = (1 - (Spread / 12)) * 100;
 }
 

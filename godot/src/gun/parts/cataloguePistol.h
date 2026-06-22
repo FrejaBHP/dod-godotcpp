@@ -142,6 +142,11 @@ public:
 	MPAcc4Rage();
 };
 
+class MPAcc5Cold : public AccessoryComponent {
+public:
+	MPAcc5Cold();
+};
+
 
 class RepeaterTitleDefault : public TitleComponent {
 public:

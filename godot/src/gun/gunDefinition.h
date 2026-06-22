@@ -31,36 +31,38 @@ public:
 	std::string GunName { "" };
 	std::string DefaultPrefix { "" };
 
-	double BaseDamage { 0 };
+	double BaseDamage { 0.0 };
 	int32_t BaseProjectileCount { 1 };
 	int32_t BaseShotCost { 1 };
-	double BaseFireTime { 1000 }; // In milliseconds
+	double BaseFireTime { 1000.0 }; // In milliseconds
 	int32_t BaseMagSize { 0 };
-	double BaseReloadTime { 0 }; // In seconds
+	double BaseReloadTime { 0.0 }; // In seconds
+	double BaseProjectileSpeed { 500.0 };
 
-	double BaseSpread { 0 };
-	double BaseRecoil { 0 };
-	double BaseMinInaccuracy { 0 };
-	double BaseMaxInaccuracy { 0 };
-	double BaseInaccuracyRegen { 0 };
+	double BaseSpread { 0.0 };
+	double BaseRecoil { 0.0 };
+	double BaseMinInaccuracy { 0.0 };
+	double BaseMaxInaccuracy { 0.0 };
+	double BaseInaccuracyRegen { 0.0 };
 	double BaseInaccuracyRegenDelay { 0.2 };
 
-	double Damage { 0 };
+	double Damage { 0.0 };
 	int32_t ProjectileCount { 1 };
 	int32_t ShotCost { 1 };
-	double FireTime { 1000 };
+	double FireTime { 1000.0 };
 	int32_t MagSize { 0 };
-	double ReloadTime { 0 };
+	double ReloadTime { 0.0 };
+	double ProjectileSpeed { 500.0 };
 
-	double Spread { 0 };
-	double Recoil { 0 };
-	double MinInaccuracy { 0 };
-	double MaxInaccuracy { 0 };
-	double InaccuracyRegen { 0 };
+	double Spread { 0.0 };
+	double Recoil { 0.0 };
+	double MinInaccuracy { 0.0 };
+	double MaxInaccuracy { 0.0 };
+	double InaccuracyRegen { 0.0 };
 	double InaccuracyRegenDelay { 0.2 };
 
 	int32_t RarityScore { 0 };
-	double Accuracy { 100 };
+	double Accuracy { 100.0 };
 
 	std::map<EAttributeType, Attribute> AttrBonuses;
 

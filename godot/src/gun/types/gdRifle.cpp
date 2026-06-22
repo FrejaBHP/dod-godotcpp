@@ -14,9 +14,9 @@ void GDRifle::AssembleRandomGun() {
 		DefaultPrefix = "Combat";
 
 		BaseDamage = 6.0;
-		BaseFireTime = 275;
+		BaseFireTime = 100;
 		BaseMagSize = 12;
-		BaseReloadTime = 2.0;
+		BaseReloadTime = 2.4;
 
 		BaseSpread = 1.3;
 		BaseRecoil = 3.5;
@@ -25,17 +25,19 @@ void GDRifle::AssembleRandomGun() {
 		BaseInaccuracyRegen = 8.0;
 
 		Body = GetRandomCRBody();
+		Barrel = GetRandomCRBarrel();
 		Stock = GetRandomCRStock();
 		Magazine = GetRandomCRMag();
+		Accessory = GetRandomCRAcc();
 	}
 	else {
 		GunSubType = EGunSubType::MachineGun;
 		DefaultPrefix = "Combat";
 
 		BaseDamage = 6.0;
-		BaseFireTime = 275;
-		BaseMagSize = 12;
-		BaseReloadTime = 2.0;
+		BaseFireTime = 167;
+		BaseMagSize = 24;
+		BaseReloadTime = 3.0;
 
 		BaseSpread = 2.4;
 		BaseRecoil = 2.2;
@@ -44,10 +46,11 @@ void GDRifle::AssembleRandomGun() {
 		BaseInaccuracyRegen = 8.0;
 
 		Body = GetRandomMGBody();
+		Barrel = GetRandomMGBarrel();
 		Stock = GetRandomMGStock();
 		Magazine = GetRandomMGMag();
+		Accessory = GetRandomMGAcc();
 	}
-
 
 	ApplyPartsBonuses();
 
@@ -68,12 +71,29 @@ std::unique_ptr<TitleComponent> GDRifle::GetEligibleTitle() {
 		if (Magazine->PartNum == 2) {
 			title = new CRTitlePounder();
 		}
+		else if (Accuracy >= 93.0) {
+			title = new CRTitleCobra();
+		}
+		else if (AttrBonuses[EAttributeType::Damage].Scale > 0.45) {
+			title = new CRTitleStomper();
+		}
 		else {
 			title = new CRTitleDefault();
 		}
 	}
 	else {
-		title = new MGTitleDefault();
+		if (FireTime <= 100) {
+			title = new MGTitleHavoc();
+		}
+		else if (Accuracy >= 91.3) {
+			title = new MGTitleMassacre();
+		}
+		else if (AttrBonuses[EAttributeType::Damage].Scale > 0.8) {
+			title = new MGTitleMauler();
+		}
+		else {
+			title = new MGTitleDefault();
+		}
 	}
 
 	return std::unique_ptr<TitleComponent>(title);

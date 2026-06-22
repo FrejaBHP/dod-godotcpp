@@ -71,6 +71,7 @@ void Gun::PrimaryFire() {
 		if (world) {
 			for (size_t i = 0; i < GunDef->ProjectileCount; i++) {
 				Projectile* proj = static_cast<Projectile*>(ProjectileScene->instantiate());
+				proj->SetSpeed((float)GunDef->ProjectileSpeed);
 				world->add_child(proj);
 
 				proj->set_global_position(OwningPlayer->get_global_position());
