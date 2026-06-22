@@ -50,9 +50,7 @@ public:
 	std::string Name { "" };
 };
 
-class ActionComponent : public GunPart {
 
-};
 
 class TitleComponent : public GunPart {
 public:

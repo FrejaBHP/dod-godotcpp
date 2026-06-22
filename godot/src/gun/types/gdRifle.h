@@ -2,17 +2,15 @@
 
 #include "gun/gunDefinition.h"
 
-class ActionComponent : public GunPart {
+class FireModeComponent : public GunPart {
 
 };
 
-class GDPistol : public GunDefinition {
+class GDRifle : public GunDefinition {
 public:
-	GDPistol();
+	GDRifle();
 	void AssembleRandomGun() override;
 	void ApplyPartsBonuses() override;
-
-	std::unique_ptr<ActionComponent> Action;
 
 protected:
 	std::unique_ptr<TitleComponent> GetEligibleTitle() override;

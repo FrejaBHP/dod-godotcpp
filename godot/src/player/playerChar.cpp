@@ -36,6 +36,22 @@ void Player::_ready() {
 		SetController(newController);
 	}
 
+	/*
+	Ref<PackedScene> gunScene = ResLoader->load("res://gun.tscn");
+
+	if (gunScene->can_instantiate()) {
+		if (GWorld && GPlayer) {
+			Gun* newGun = static_cast<Gun*>(gunScene->instantiate());
+			newGun->BuildGun(dgun->GunDef);
+			newGun->MagAmmo = newGun->GunDef->MetaMagAmmo;
+			GPlayer->add_child(newGun);
+
+			return newGun;
+		}
+	}
+	*/
+
+	/*
 	for (size_t i = 0; i < PlayerNumGunSlots; i++) {
 		std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
 
@@ -59,6 +75,7 @@ void Player::_ready() {
 
 		SwitchToGunInSlot(0);
 	}
+	*/
 }
 
 void Player::_process(double delta) {

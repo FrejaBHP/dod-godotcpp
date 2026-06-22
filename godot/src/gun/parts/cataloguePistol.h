@@ -3,6 +3,7 @@
 #include <memory>
 #include "gun/gunpart.h"
 #include "gun/gunDefinition.h"
+#include "gun/types/gdPistol.h"
 
 std::unique_ptr<BodyComponent> GetRandomPistolBody();
 std::unique_ptr<BarrelComponent> GetRandomPistolBarrel();

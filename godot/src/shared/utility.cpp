@@ -114,8 +114,8 @@ std::string GetGunSubTypeName(EGunSubType subtype) {
 			return "Repeater";
 		case EGunSubType::MachinePistol:
 			return "Machine Pistol";
-		case EGunSubType::AssaultRifle:
-			return "Assault Rifle";
+		case EGunSubType::CombatRifle:
+			return "Combat Rifle";
 		case EGunSubType::MachineGun:
 			return "Machine Gun";
 		case EGunSubType::CombatShotgun:

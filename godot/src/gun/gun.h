@@ -1,6 +1,7 @@
 #pragma once
 
 #include <godot_cpp/classes/node2d.hpp>
+#include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <chrono>
 #include "gun/gunDefinition.h"
@@ -30,14 +31,17 @@ public:
 	std::shared_ptr<GunDefinition> GunDef = nullptr;
 
 	Player* OwningPlayer = nullptr;
+	Timer* ReloadTimer = nullptr;
 
 	int32_t MagAmmo { 0 };
 
 protected:
 	static void _bind_methods();
 	virtual void PrimaryFire();
-	virtual void Reload();
-	void AdjustFiringAngle(Node2D* node);
+	virtual void StartReload();
+	virtual void FinishReload();
+	void AdjustFiringAngle(Node2D* node) const;
+	void ReloadTimerTimeout();
 
 	steady_clock::time_point LastFired;
 	Ref<PackedScene> ProjectileScene = nullptr;

@@ -103,7 +103,7 @@ std::unique_ptr<TitleComponent> GDPistol::GetEligibleTitle() {
 		else if (AttrBonuses[EAttributeType::Damage].Scale > 0.25) {
 			title = new MPTitleTorment();
 		}
-		else if (Accuracy <= 79 && FireTime <= 75) {
+		else if (Accuracy <= 79 && FireTime <= 100) { // 75
 			title = new MPTitleFury();
 		}
 		else {

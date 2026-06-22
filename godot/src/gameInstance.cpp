@@ -13,6 +13,7 @@
 
 #include "gun/types/gdSMG.h"
 #include "gun/types/gdPistol.h"
+#include "gun/types/gdRifle.h"
 
 #include "gun/parts/catalogueMaterials.h"
 
@@ -62,7 +63,7 @@ void GameInstance::GenerateAndDropGun(int32_t type) {
 		gundef = std::make_shared<GDSMG>();
 	}
 	else {
-		gundef = std::make_shared<GunDefinition>();
+		gundef = std::make_shared<GDRifle>();
 	}
 
 	int32_t manuIndex = GetRandomInt(0, (int32_t)EManufacturer::COUNT - 1);
@@ -75,17 +76,7 @@ void GameInstance::GenerateAndDropGun(int32_t type) {
 		type = GetRandomInt(0, 2);
 	}
 
-	if (type == 0) {
-		gundef->AssembleRandomGun();
-	}
-	else if (type == 1) {
-		gundef->AssembleRandomGun();
-	}
-	else {
-		gundef->SetARStats();
-		gundef->ApplyPartsBonuses();
-	}
-
+	gundef->AssembleRandomGun();
 	gundef->FinaliseGun();
 
 	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");

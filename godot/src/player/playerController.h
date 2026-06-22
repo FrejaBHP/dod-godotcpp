@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/camera2d.hpp>
 #include <godot_cpp/classes/input_event.hpp>
+#include <godot_cpp/classes/texture_progress_bar.hpp>
 
 using namespace godot;
 
@@ -38,20 +39,28 @@ public:
 	int32_t GetCurrentGunSlot() const;
 	void UpdateAmmoLabel();
 	void ApplyRecoil();
+	void GunReloadEnd();
 
 protected:
 	static void _bind_methods();
+
 	void PickupAreaEntered(Area2D* area);
 	void PickupAreaExited(Area2D* area);
 	void PickupTimerTimeout();
 	void ScanForGuns();
 	GunDropped* GetClosestGunDropped();
+
 	void Interact();
+	void PickUpGunInSlot(int32_t slot);
 	void SwapGunOnGround();
 
 	void ApplyCurrentGun();
 	void EnableInaccuracyRecovery();
 	void RecoverInaccuracy(double delta);
+
+	void SwitchGun(int32_t slot);
+	void GunReloadStart(Gun* gun);
+	void ProcessReload(double delta);
 
 	Player* ControlledPlayer = nullptr;
 	Node2D* PlayerCrosshair = nullptr;
@@ -61,9 +70,9 @@ protected:
 	Timer* PickupTimer = nullptr;
 	HUD* PlayerHUD = nullptr;
 	Timer* InaccuracyTimer = nullptr;
+	TextureProgressBar* ReloadBar = nullptr;
 
 	std::vector<GunDropped*> DroppedGunsInRadius;
-
 	GunDropped* DroppedGunInFocus = nullptr;
 
 	bool IsFullyAccurate { false };
@@ -72,6 +81,10 @@ protected:
 	bool isLMBHeld = false;
 	bool isRMBHeld = false;
 
+	bool IsReloading = false;
+	double CurReloadTime = 0.0;
+
+	int32_t NumEquippedGuns { 0 };
 	int32_t CurrentGunSlot { 0 };
 
 private:

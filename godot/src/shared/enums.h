@@ -69,7 +69,7 @@ enum class EGunSubType {
 	MachinePistol,
 
 	// Rifles
-	AssaultRifle,
+	CombatRifle,
 	MachineGun,
 
 	// Shotguns

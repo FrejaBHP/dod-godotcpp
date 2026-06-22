@@ -14,7 +14,7 @@ void Gun::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("TryPrimaryFire"), &Gun::TryPrimaryFire);
 	ClassDB::bind_method(D_METHOD("PrimaryFire"), &Gun::PrimaryFire);
 	ClassDB::bind_method(D_METHOD("TryReload"), &Gun::TryReload);
-	ClassDB::bind_method(D_METHOD("Reload"), &Gun::Reload);
+	ClassDB::bind_method(D_METHOD("Reload"), &Gun::FinishReload);
 }
 
 Gun::Gun() {
@@ -26,6 +26,10 @@ void Gun::_ready() {
 
 	ResourceLoader* loader = ResourceLoader::get_singleton();
 	ProjectileScene = loader->load("res://projectile.tscn");
+
+	ReloadTimer = get_node<Timer>("ReloadTimer");
+	ReloadTimer->connect("timeout", callable_mp(this, &Gun::ReloadTimerTimeout));
+	ReloadTimer->set_one_shot(true);
 }
 
 void Gun::_process(double delta) {
@@ -88,7 +92,7 @@ void Gun::PrimaryFire() {
 	}
 }
 
-void Gun::AdjustFiringAngle(Node2D* node) {
+void Gun::AdjustFiringAngle(Node2D* node) const {
 	double maxAngle = OwningPlayer->Inaccuracy + GunDef->Spread;
 	double randomAngle = GetRandomDouble(-maxAngle, maxAngle);
 
@@ -115,7 +119,7 @@ bool Gun::TryReload() {
 	}
 
 	if (reserveAmmo > 0) {
-		Reload();
+		StartReload();
 		return true;
 	}
 	else {
@@ -123,8 +127,15 @@ bool Gun::TryReload() {
 	}
 }
 
+void Gun::StartReload() {
+	ReloadTimer->start(GunDef->ReloadTime);
+}
 
-void Gun::Reload() {
+void Gun::ReloadTimerTimeout() {
+	FinishReload();
+}
+
+void Gun::FinishReload() {
 	// Dirty hacky stuff
 	int32_t* reserveAmmo;
 	if (GunDef->GunType == EGunType::Pistol) {
@@ -150,5 +161,6 @@ void Gun::Reload() {
 		*reserveAmmo = 0;
 	}
 
+	OwningPlayer->GetController()->GunReloadEnd();
 	OwningPlayer->GetController()->UpdateAmmoLabel();
 }

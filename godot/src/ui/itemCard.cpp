@@ -4,7 +4,7 @@
 using namespace godot;
 
 void ItemCard::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("GetRowValueLabel"), &ItemCard::GetRowValueLabel);
+	//ClassDB::bind_method(D_METHOD("GetRowValueLabel"), &ItemCard::GetRowValueLabel);
 }
 
 void ItemCard::_ready() {

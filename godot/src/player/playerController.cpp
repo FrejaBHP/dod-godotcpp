@@ -64,18 +64,20 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 
 	if (ControlledPlayer) {
 		if (p_event.ptr()->is_action_pressed("weaponSlot1")) {
-			ControlledPlayer->SwitchToGunInSlot(0);
+			SwitchGun(0);
 		}
 		else if (p_event.ptr()->is_action_pressed("weaponSlot2")) {
-			ControlledPlayer->SwitchToGunInSlot(1);
+			SwitchGun(1);
 		}
 		else if (p_event.ptr()->is_action_pressed("weaponSlot3")) {
-			ControlledPlayer->SwitchToGunInSlot(2);
+			SwitchGun(2);
 		}
 
-		if (p_event.ptr()->is_action_pressed("reload")) {
-			if (ControlledPlayer->GetCurrentGun()) {
-				ControlledPlayer->GetCurrentGun()->TryReload();
+		if (p_event.ptr()->is_action_pressed("reload") && !IsReloading) {
+			Gun* gun = ControlledPlayer->GetCurrentGun();
+
+			if (gun && gun->TryReload()) {
+				GunReloadStart(gun);
 			}
 		}
 
@@ -92,7 +94,7 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 				Gun* gun = GetPlayer()->GetGunInSlot(i);
 
 				if (gun) {
-					print_line(gun->GunDef.use_count());
+					print_line((int32_t)gun->GunDef.use_count());
 				}
 			}
 		}
@@ -131,7 +133,7 @@ void PlayerController::_physics_process(double delta) {
 		if (isLMBHeld) {
 			Gun* currentGun = ControlledPlayer->GetCurrentGun();
 
-			if (currentGun) {
+			if (currentGun && !IsReloading) {
 				currentGun->TryPrimaryFire();
 			}
 		}
@@ -140,6 +142,11 @@ void PlayerController::_physics_process(double delta) {
 			RecoverInaccuracy(delta);
 		}
 
+		if (IsReloading) {
+			ProcessReload(delta);
+		}
+
+		/*
 		double spread = 0;
 
 		if (ControlledPlayer->GetCurrentGun()) {
@@ -147,16 +154,6 @@ void PlayerController::_physics_process(double delta) {
 		}
 
 		DebugLabel->set_text(vformat("%.2f + %.2f, %.2f, %d", spread, ControlledPlayer->Inaccuracy, InaccuracyTimer->get_time_left(), int(CanRecoverInaccuracy)));
-		
-
-		/*
-		if (DroppedGunInFocus) {
-			std::string focus = GetGunTypeName(DroppedGunInFocus->GunDef->GunType) + " : " + GetGunSubTypeName(DroppedGunInFocus->GunDef->GunSubType);
-			DebugLabel->set_text(focus.c_str());
-		}
-		else {
-			DebugLabel->set_text("None");
-		}
 		*/
 	}
 }
@@ -166,12 +163,29 @@ Vector2 PlayerController::ProcessMovementInput() {
 	return movementInput;
 }
 
+void PlayerController::SwitchGun(int32_t slot) {
+	if (PlayerNumGunSlots > slot && slot >= 0) {
+		if (IsReloading) {
+			Gun* gun = ControlledPlayer->GetCurrentGun();
+			gun->ReloadTimer->stop();
+			GunReloadEnd();
+		}
+		ControlledPlayer->SwitchToGunInSlot(slot);
+	}
+}
+
 void PlayerController::Interact() {
 	if (DroppedGunInFocus && DroppedGunInFocus->CanBePickedUp) {
-		Gun* curGun = GetPlayer()->GetCurrentGun();
+		if (PlayerNumGunSlots > NumEquippedGuns) {
+			PickUpGunInSlot(NumEquippedGuns);
+			NumEquippedGuns++;
+		}
+		else {
+			Gun* curGun = GetPlayer()->GetCurrentGun();
 
-		if (curGun) {
-			SwapGunOnGround();
+			if (curGun) {
+				SwapGunOnGround();
+			}
 		}
 	}
 }
@@ -224,6 +238,11 @@ void PlayerController::SetPlayer(Player* player) {
 		InaccuracyTimer->connect("timeout", callable_mp(this, &PlayerController::EnableInaccuracyRecovery));
 	}
 
+	TextureProgressBar* reloadBar = player->get_node<TextureProgressBar>("ReloadBar");
+	if (reloadBar) {
+		ReloadBar = reloadBar;
+	}
+
 	GameInstance::GetInstance().RegisterPlayer(ControlledPlayer);
 }
 
@@ -245,12 +264,34 @@ int32_t PlayerController::GetCurrentGunSlot() const {
 	return CurrentGunSlot;
 }
 
+void PlayerController::PickUpGunInSlot(int32_t slot) {
+	DroppedGunInFocus->CanBePickedUp = false;
+	DroppedGunInFocus->PickupArea->set_monitorable(false);
+
+	Gun* newGun = GameInstance::GetInstance().CopyDroppedGunToEquip(DroppedGunInFocus);
+	DroppedGunInFocus->queue_free();
+	DroppedGunInFocus = nullptr;
+
+	ControlledPlayer->SetGunInSlot(slot, newGun);
+
+	if (slot == GetCurrentGunSlot()) {
+		ControlledPlayer->SwitchToGunInSlot(GetCurrentGunSlot());
+
+		UpdateAmmoLabel();
+	}
+}
+
 void PlayerController::SwapGunOnGround() {
 	DroppedGunInFocus->CanBePickedUp = false;
 	DroppedGunInFocus->PickupArea->set_monitorable(false);
 
 	// Presence tested before this is called, so we can probably assume it exists, barring immeasurably tiny time differences create a gap
 	Gun* oldGun = GetPlayer()->GetCurrentGun();
+
+	if (IsReloading) {
+		oldGun->ReloadTimer->stop();
+		GunReloadEnd();
+	}
 
 	// Pick up new gun
 	Gun* newGun = GameInstance::GetInstance().CopyDroppedGunToEquip(DroppedGunInFocus);
@@ -277,6 +318,24 @@ void PlayerController::ApplyCurrentGun() {
 	ControlledPlayer->InaccuracyRegenDelay = gun->GunDef->InaccuracyRegenDelay;
 	ControlledPlayer->Inaccuracy = ControlledPlayer->MinInaccuracy;
 	IsFullyAccurate = true;
+}
+
+void PlayerController::GunReloadStart(Gun* gun) {
+	IsReloading = true;
+	CurReloadTime = 0.0;
+	ReloadBar->set_value(0.0);
+	ReloadBar->set_max(gun->GunDef->ReloadTime);
+	ReloadBar->set_visible(true);
+}
+
+void PlayerController::ProcessReload(double delta) {
+	CurReloadTime += delta;
+	ReloadBar->set_value(CurReloadTime);
+}
+
+void PlayerController::GunReloadEnd() {
+	IsReloading = false;
+	ReloadBar->set_visible(false);
 }
 
 void PlayerController::ApplyRecoil() {
@@ -328,13 +387,6 @@ void PlayerController::UpdateAmmoLabel() {
 		ammo = ControlledPlayer->ARAmmo;
 	}
 
-	/*
-	char ammoBuffer[32];
-	sprintf(ammoBuffer, "%d / %d", ControlledPlayer->GetCurrentGun()->MagAmmo, ammo);
-
-	AmmoLabel->set_text(ammoBuffer);
-	*/
-
 	PlayerHUD->SetAmmoDisplayValues(ControlledPlayer->GetCurrentGun()->MagAmmo, ammo);
 }
 
@@ -343,11 +395,6 @@ void PlayerController::PickupAreaEntered(Area2D* area) {
 
 	if (parent && parent->is_in_group("GunDropped")) {
 		GunDropped* dGun = static_cast<GunDropped*>(parent);
-
-		//std::string type = GetGunTypeName(dGun->GunDef->GunType) + " : " + GetGunSubTypeName(dGun->GunDef->GunSubType);
-		//print_line(type.c_str());
-
-		//DroppedGunInFocus = dGun;
 
 		DroppedGunsInRadius.push_back(dGun);
 		ScanForGuns();
@@ -423,31 +470,4 @@ GunDropped* PlayerController::GetClosestGunDropped() {
 	}
 
 	return DroppedGunsInRadius[shortestIndex];
-
-	/*
-	TypedArray<Area2D> overlaps = PickupRadius->get_overlapping_areas();
-
-	if (overlaps.size() == 0) {
-		DroppedGunInFocus = nullptr;
-	}
-	else {
-		float shortestDist = 100.f;
-		int32_t shortestIndex = 0;
-
-		for (size_t i = 0; i < overlaps.size(); i++) {
-			// static_cast virker overhovedet ikke til Variant-typer >.>
-			Area2D* element = Object::cast_to<Area2D>(overlaps[i]);
-
-			float dist = ControlledPlayer->get_global_position().distance_squared_to(element->get_global_position());
-			if (shortestDist > dist) {
-				shortestDist = dist;
-				shortestIndex = i;
-			}
-		}
-
-		Area2D* closest = Object::cast_to<Area2D>(overlaps[shortestIndex]);
-		GunDropped* newFocus = static_cast<GunDropped*>(closest->get_parent());
-		DroppedGunInFocus = newFocus;
-	}
-	*/
 }

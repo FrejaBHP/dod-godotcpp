@@ -44,7 +44,7 @@ void GunDefinition::SetSMGStats() {
 
 void GunDefinition::SetARStats() {
 	GunType = EGunType::Rifle;
-	GunSubType = EGunSubType::AssaultRifle;
+	GunSubType = EGunSubType::CombatRifle;
 	FireMode = EFireMode::Automatic;
 	DefaultPrefix = "Combat";
 
