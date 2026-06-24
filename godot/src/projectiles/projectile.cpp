@@ -1,4 +1,5 @@
 #include "projectiles/projectile.h"
+#include "character.h"
 
 using namespace godot;
 
@@ -33,6 +34,12 @@ void Projectile::_physics_process(double delta) {
 
 void Projectile::BodyEntered(Node2D* body) {
 	LifeTimer->stop();
+
+	if (body->is_in_group("Character")) {
+		Character* ch = static_cast<Character*>(body);
+		ch->OnHitByProjectile();
+	}
+
 	Remove();
 }
 

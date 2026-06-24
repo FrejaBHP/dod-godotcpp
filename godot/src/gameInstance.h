@@ -30,12 +30,14 @@ public:
 
 	void RegisterWorld(World* world);
 	void RegisterPlayer(Player* player);
-	void DebugSpawnGun(int32_t type);
+	Gun* GenerateNakedGun(int32_t type);
 	void CopyEquippedGunToDrop(Gun* gun, Vector2 position);
 	Gun* CopyDroppedGunToEquip(GunDropped* dgun);
 
 	std::shared_ptr<GunDefinition> GenerateGunDef(int32_t type);
 	void GenerateAndDropGun(int32_t type);
+
+	void TestSpawnEnemy();
 
 	void ShowCursor();
 	void HideCursor();

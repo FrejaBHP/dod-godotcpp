@@ -110,6 +110,14 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 			}
 		}
 
+		if (p_event.ptr()->is_action_pressed("debug2")) {
+			GameInstance::GetInstance().TestSpawnEnemy();
+		}
+
+		if (p_event.ptr()->is_action_pressed("debug3")) {
+			
+		}
+
 		if (p_event.ptr()->is_action_pressed("debug4")) {
 			GameInstance::GetInstance().GenerateAndDropGun(0);
 		}

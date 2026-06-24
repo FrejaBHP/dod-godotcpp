@@ -17,6 +17,8 @@ public:
 	EAlignment Alignment;
 
 	virtual void ApplyMovement(Vector2 movement);
+	virtual void OnHitByProjectile();
+	virtual void Die();
 	double GetMaxSpeed() const;
 
 	double Inaccuracy { 0 };
@@ -30,8 +32,11 @@ public:
 	int32_t SMGAmmo { 192 };
 	int32_t ARAmmo { 120 };
 
+	bool IsDead = false;
+
 protected:
 	static void _bind_methods();
+	virtual void OnDeath();
 
 	Gun* CurrentGun = nullptr;
 

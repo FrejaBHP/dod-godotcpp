@@ -27,6 +27,8 @@ Player::Player() {
 
 void Player::_ready() {
 	Alignment = EAlignment::Player;
+	add_to_group("Character");
+	add_to_group("Player");
 
 	PlayerController* newController = memnew(PlayerController);
 	

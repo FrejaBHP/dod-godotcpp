@@ -3,6 +3,7 @@
 #include <godot_cpp/classes/window.hpp>
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/node2d.hpp>
+#include <godot_cpp/classes/marker2d.hpp>
 
 #include "gameInstance.h"
 #include "player/playerChar.h"
@@ -17,6 +18,8 @@
 
 #include "gun/parts/catalogueMaterials.h"
 
+#include "enemies/enemyGun.h"
+
 using namespace godot;
 
 void GameInstance::Init() {
@@ -27,34 +30,12 @@ void GameInstance::Init() {
 	ResLoader = ResourceLoader::get_singleton();
 }
 
-void GameInstance::DebugSpawnGun(int32_t type) {
-	std::shared_ptr<GunDefinition> gundef = std::make_shared<GunDefinition>();
-
-	if (type == 0) {
-		gundef->SetRepeaterStats();
-	}
-	else if (type == 1) {
-		gundef->SetSMGStats();
-	}
-	else {
-		gundef->SetARStats();
-	}
-
-	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");
-
-	if (droppedScene->can_instantiate()) {
-		if (GWorld && GPlayer) {
-			GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
-			GWorld->add_child(dGun);
-			dGun->SetupDroppedGun(gundef);
-
-			dGun->set_global_position(GPlayer->get_global_position());
-		}
-	}
-}
-
 std::shared_ptr<GunDefinition> GameInstance::GenerateGunDef(int32_t type) {
 	std::shared_ptr<GunDefinition> gundef;
+
+	if (type == -1) {
+		type = GetRandomInt(0, 2);
+	}
 
 	if (type == 0) {
 		gundef = std::make_shared<GDPistol>();
@@ -72,14 +53,26 @@ std::shared_ptr<GunDefinition> GameInstance::GenerateGunDef(int32_t type) {
 	gundef->Material = GetRandomMaterial(manufacturer);
 	gundef->Manufacturer = gundef->Material->Manufacturer;
 
-	if (type == -1) {
-		type = GetRandomInt(0, 2);
-	}
-
 	gundef->AssembleRandomGun();
 	gundef->FinaliseGun();
 
 	return gundef;
+}
+
+Gun* GameInstance::GenerateNakedGun(int32_t type) {
+	std::shared_ptr<GunDefinition> gundef = GenerateGunDef(type);
+
+	Ref<PackedScene> gunScene = ResLoader->load("res://gun.tscn");
+
+	if (gunScene->can_instantiate()) {
+		Gun* newGun = static_cast<Gun*>(gunScene->instantiate());
+		newGun->BuildGun(gundef);
+		newGun->MagAmmo = newGun->GunDef->MetaMagAmmo;
+
+		return newGun;
+	}
+
+	return nullptr;
 }
 
 void GameInstance::GenerateAndDropGun(int32_t type) {
@@ -132,6 +125,21 @@ Gun* GameInstance::CopyDroppedGunToEquip(GunDropped* dgun) {
 	print_error("Failed to instantiate Gun");
 
 	return nullptr;
+}
+
+void GameInstance::TestSpawnEnemy() {
+	if (!GWorld) {
+		return;
+	}
+
+	Marker2D* testmarker = GWorld->get_node<Marker2D>("TestSpawnMarker");
+
+	Ref<PackedScene> egScene = ResLoader->load("res://enemy_gun.tscn");
+
+	if (egScene->can_instantiate()) {
+		EnemyGun* eg = static_cast<EnemyGun*>(egScene->instantiate());
+		GWorld->add_child(eg);
+	}
 }
 
 void GameInstance::RegisterWorld(World* world) {
