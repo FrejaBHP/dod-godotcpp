@@ -155,6 +155,79 @@ public:
 };
 
 
+class CRPrefixQ0 : public PrefixComponent {
+public:
+	CRPrefixQ0();
+};
+
+class CRPrefixQ1 : public PrefixComponent {
+public:
+	CRPrefixQ1();
+};
+
+class CRPrefixQ2 : public PrefixComponent {
+public:
+	CRPrefixQ2();
+};
+
+class CRPrefixQ3 : public PrefixComponent {
+public:
+	CRPrefixQ3();
+};
+
+class CRPrefixShort : public PrefixComponent {
+public:
+	CRPrefixShort();
+};
+
+class CRPrefixPunishing : public PrefixComponent {
+public:
+	CRPrefixPunishing();
+};
+
+class MGPrefixQ0 : public PrefixComponent {
+public:
+	MGPrefixQ0();
+};
+
+class MGPrefixQ1 : public PrefixComponent {
+public:
+	MGPrefixQ1();
+};
+
+class MGPrefixQ2 : public PrefixComponent {
+public:
+	MGPrefixQ2();
+};
+
+class MGPrefixQ3 : public PrefixComponent {
+public:
+	MGPrefixQ3();
+};
+
+class MGPrefixRowdy : public PrefixComponent {
+public:
+	MGPrefixRowdy();
+};
+
+class MGPrefixShattering : public PrefixComponent {
+public:
+	MGPrefixShattering();
+};
+
+class MGPrefixFrantic : public PrefixComponent {
+public:
+	MGPrefixFrantic();
+};
+
+class MGPrefixGlorious : public PrefixComponent {
+public:
+	MGPrefixGlorious();
+};
+
+
+
+
 class CRTitleDefault : public TitleComponent {
 public:
 	CRTitleDefault();

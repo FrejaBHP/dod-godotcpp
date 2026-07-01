@@ -18,7 +18,7 @@ void Player::_bind_methods() {
 }
 
 Player::Player() {
-	MaxSpeed = 300.f;
+	MaxSpeed = 200.f;
 
 	for (size_t i = 0; i < PlayerNumGunSlots; i++) {
 		GunSlots[i] = nullptr;

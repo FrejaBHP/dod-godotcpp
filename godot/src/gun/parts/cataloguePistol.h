@@ -148,6 +148,77 @@ public:
 };
 
 
+class PistolPrefixDouble : public PrefixComponent {
+public:
+	PistolPrefixDouble();
+};
+
+class PistolPrefixStabilised : public PrefixComponent {
+public:
+	PistolPrefixStabilised();
+};
+
+class RepeaterPrefixQ0 : public PrefixComponent {
+public:
+	RepeaterPrefixQ0();
+};
+
+class RepeaterPrefixQ1 : public PrefixComponent {
+public:
+	RepeaterPrefixQ1();
+};
+
+class RepeaterPrefixQ2 : public PrefixComponent {
+public:
+	RepeaterPrefixQ2();
+};
+
+class RepeaterPrefixQ3 : public PrefixComponent {
+public:
+	RepeaterPrefixQ3();
+};
+
+class RepeaterPrefixNasty : public PrefixComponent {
+public:
+	RepeaterPrefixNasty();
+};
+
+class RepeaterPrefixNoble : public PrefixComponent {
+public:
+	RepeaterPrefixNoble();
+};
+
+class MPPrefixQ0 : public PrefixComponent {
+public:
+	MPPrefixQ0();
+};
+
+class MPPrefixQ1 : public PrefixComponent {
+public:
+	MPPrefixQ1();
+};
+
+class MPPrefixQ2 : public PrefixComponent {
+public:
+	MPPrefixQ2();
+};
+
+class MPPrefixQ3 : public PrefixComponent {
+public:
+	MPPrefixQ3();
+};
+
+class MPPrefixRaging : public PrefixComponent {
+public:
+	MPPrefixRaging();
+};
+
+class MPPrefixCold : public PrefixComponent {
+public:
+	MPPrefixCold();
+};
+
+
 class RepeaterTitleDefault : public TitleComponent {
 public:
 	RepeaterTitleDefault();

@@ -13,5 +13,6 @@ public:
 	void ApplyPartsBonuses() override;
 
 protected:
+	std::unique_ptr<PrefixComponent> GetEligiblePrefix() override;
 	std::unique_ptr<TitleComponent> GetEligibleTitle() override;
 };

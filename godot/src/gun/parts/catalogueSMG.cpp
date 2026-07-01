@@ -249,7 +249,7 @@ SMGBarrel4::SMGBarrel4() {
 }
 
 SMGBarrel5::SMGBarrel5() {
-	PartRarity = 4;
+	PartRarity = 5;
 	PartNum = 5;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.15 },
@@ -262,7 +262,7 @@ SMGBarrel5::SMGBarrel5() {
 
 
 SMGMag1Thumper::SMGMag1Thumper() {
-	PartRarity = 2;
+	PartRarity = 4;
 	PartNum = 1;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.7 },
@@ -283,13 +283,14 @@ SMGMag3::SMGMag3() {
 	PartRarity = 2;
 	PartNum = 3;
 	Bonuses = {
+		// Tech +2
 		{ EAttributeType::MagSize, 8, 0 },
 		{ EAttributeType::ReloadSpeed, 0, 0.2 }
 	};
 }
 
 SMGMag4::SMGMag4() {
-	PartRarity = 1;
+	PartRarity = 3;
 	PartNum = 4;
 	Bonuses = {
 		{ EAttributeType::MagSize, 27, 0 },
@@ -298,9 +299,10 @@ SMGMag4::SMGMag4() {
 }
 
 SMGMag5::SMGMag5() {
-	PartRarity = 1;
+	PartRarity = 4;
 	PartNum = 5;
 	Bonuses = {
+		// Tech +1
 		{ EAttributeType::MagSize, 18, 0 },
 		{ EAttributeType::ReloadSpeed, 0, -0.4 }
 	};
@@ -379,7 +381,7 @@ SMGAcc0None::SMGAcc0None() {
 
 SMGAcc1Relentless::SMGAcc1Relentless() {
 	Name = "Relentless";
-	PartRarity = 2;
+	PartRarity = 3;
 	PartNum = 1;
 	Bonuses = {
 		{ EAttributeType::FireRate, 0, 0.2 },
@@ -409,7 +411,7 @@ SMGAcc3Vector::SMGAcc3Vector() {
 
 SMGAcc4Double::SMGAcc4Double() {
 	Name = "Double";
-	PartRarity = 4;
+	PartRarity = 5;
 	PartNum = 4;
 	Bonuses = {
 		{ EAttributeType::Damage, 0, -0.18 },
@@ -421,18 +423,63 @@ SMGAcc4Double::SMGAcc4Double() {
 }
 
 
+SMGPrefixQ0::SMGPrefixQ0() {
+	Name = "Patrol";
+	Bonuses = {};
+}
+
+SMGPrefixQ1::SMGPrefixQ1() {
+	Name = "Violent";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.06 }
+	};
+}
+
+SMGPrefixQ2::SMGPrefixQ2() {
+	Name = "Hostile";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.09 }
+	};
+}
+
+SMGPrefixQ3::SMGPrefixQ3() {
+	Name = "Malevolent";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.12 }
+	};
+}
+
+SMGPrefixRuthless::SMGPrefixRuthless() {
+	Name = "Ruthless";
+	Bonuses = {};
+}
+
+SMGPrefixRelentless::SMGPrefixRelentless() {
+	Name = "Relentless";
+	Bonuses = {};
+}
+
+SMGPrefixDouble::SMGPrefixDouble() {
+	Name = "Double";
+	Bonuses = {};
+}
+
+
 SMGTitleDefault::SMGTitleDefault() {
-	Title = "SMG";
+	Name = "SMG";
 	Bonuses = {};
 }
 
 SMGTitleThumper::SMGTitleThumper() {
-	Title = "Thumper";
+	Name = "Thumper";
 	Bonuses = {};
 }
 
 SMGTitleAnarchy::SMGTitleAnarchy() {
-	Title = "Anarchy";
+	Name = "Anarchy";
 	Bonuses = {
 		{ EAttributeType::MagSize, 0, 0.3 },
 		{ EAttributeType::ProjectileCount, 2, 0 },
@@ -441,7 +488,7 @@ SMGTitleAnarchy::SMGTitleAnarchy() {
 }
 
 SMGTitleStinger::SMGTitleStinger() {
-	Title = "Stinger";
+	Name = "Stinger";
 	Bonuses = {
 		{ EAttributeType::Recoil, 0, -0.15 },
 		{ EAttributeType::MagSize, 3, 0.0 },
@@ -449,7 +496,7 @@ SMGTitleStinger::SMGTitleStinger() {
 }
 
 SMGTitleBruiser::SMGTitleBruiser() {
-	Title = "Bruiser";
+	Name = "Bruiser";
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.15 },
 	};

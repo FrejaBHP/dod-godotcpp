@@ -1,6 +1,7 @@
 #pragma once
 
-#include <godot_cpp/classes/node.hpp>
+#include "characterController.h"
+
 #include <godot_cpp/classes/node2d.hpp>
 #include <godot_cpp/classes/area2d.hpp>
 #include <godot_cpp/classes/timer.hpp>
@@ -16,8 +17,8 @@ class Gun;
 class GunDropped;
 class HUD;
 
-class PlayerController : public Node {
-	GDCLASS(PlayerController, Node)
+class PlayerController : public CharacterController {
+	GDCLASS(PlayerController, CharacterController)
 
 public:
 	PlayerController();
@@ -38,8 +39,7 @@ public:
 	void SetCurrentGunSlot(int32_t slot);
 	int32_t GetCurrentGunSlot() const;
 	void UpdateAmmoLabel();
-	void ApplyRecoil();
-	void GunReloadEnd();
+	
 
 protected:
 	static void _bind_methods();
@@ -54,15 +54,17 @@ protected:
 	void PickUpGunInSlot(int32_t slot);
 	void SwapGunOnGround();
 
-	void ApplyCurrentGun();
-	void EnableInaccuracyRecovery();
-	void RecoverInaccuracy(double delta);
-
 	void SwitchGun(int32_t slot);
-	void GunReloadStart(Gun* gun);
+	void ApplyCurrentGun();
+
+	void GunReloadStart() override;
+	void GunReloadEnd() override;
 	void ProcessReload(double delta);
 
 	void OnGunFired();
+	void ApplyRecoil() override;
+	void EnableInaccuracyRecovery() override;
+
 	void BindGun(Gun* gun);
 	void UnbindGun(Gun* gun);
 
@@ -79,13 +81,9 @@ protected:
 	std::vector<GunDropped*> DroppedGunsInRadius;
 	GunDropped* DroppedGunInFocus = nullptr;
 
-	bool IsFullyAccurate { false };
-	bool CanRecoverInaccuracy { false };
-
 	bool isLMBHeld = false;
 	bool isRMBHeld = false;
 
-	bool IsReloading = false;
 	double CurReloadTime = 0.0;
 
 	int32_t NumEquippedGuns { 0 };

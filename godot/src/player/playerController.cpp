@@ -38,9 +38,9 @@ void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("ScanForGuns"), &PlayerController::ScanForGuns);
 	ClassDB::bind_method(D_METHOD("GetClosestGunDropped"), &PlayerController::GetClosestGunDropped);
 
-	ClassDB::bind_method(D_METHOD("ApplyRecoil"), &PlayerController::ApplyRecoil);
-	ClassDB::bind_method(D_METHOD("OnGunFired"), &PlayerController::OnGunFired);
-	ClassDB::bind_method(D_METHOD("ReloadEnd"), &PlayerController::GunReloadEnd);
+	//ClassDB::bind_method(D_METHOD("ApplyRecoil"), &PlayerController::ApplyRecoil);
+	//ClassDB::bind_method(D_METHOD("OnGunFired"), &PlayerController::OnGunFired);
+	//ClassDB::bind_method(D_METHOD("ReloadEnd"), &PlayerController::GunReloadEnd);
 }
 
 PlayerController::PlayerController() {
@@ -88,7 +88,7 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 			Gun* gun = ControlledPlayer->GetCurrentGun();
 
 			if (gun && gun->TryReload()) {
-				GunReloadStart(gun);
+				GunReloadStart();
 			}
 		}
 
@@ -111,11 +111,14 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug2")) {
-			GameInstance::GetInstance().TestSpawnEnemy();
+			if (ControlledPlayer->GetCurrentGun()) {
+				print_line(ControlledPlayer->GetCurrentGun()->GunDef->GetGunPartsString().c_str());
+				print_line(vformat("Total Rarity: %d", ControlledPlayer->GetCurrentGun()->GunDef->RarityScore));
+			}
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug3")) {
-			
+			GameInstance::GetInstance().TestSpawnEnemy();
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug4")) {
@@ -128,6 +131,14 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 
 		if (p_event.ptr()->is_action_pressed("debug6")) {
 			GameInstance::GetInstance().GenerateAndDropGun(2);
+		}
+
+		if (p_event.ptr()->is_action_pressed("debug7")) {
+			GameInstance::GetInstance().GenerateAndDropGun(3);
+		}
+
+		if (p_event.ptr()->is_action_pressed("debug8")) {
+			GameInstance::GetInstance().GenerateAndDropGun(4);
 		}
 	}
 }
@@ -164,16 +175,6 @@ void PlayerController::_physics_process(double delta) {
 		if (IsReloading) {
 			ProcessReload(delta);
 		}
-
-		/*
-		double spread = 0;
-
-		if (ControlledPlayer->GetCurrentGun()) {
-			spread = ControlledPlayer->GetCurrentGun()->GunDef->Spread;
-		}
-
-		DebugLabel->set_text(vformat("%.2f + %.2f, %.2f, %d", spread, ControlledPlayer->Inaccuracy, InaccuracyTimer->get_time_left(), int(CanRecoverInaccuracy)));
-		*/
 	}
 }
 
@@ -210,6 +211,7 @@ void PlayerController::Interact() {
 }
 
 void PlayerController::SetPlayer(Player* player) {
+	ControlledChar = player;
 	ControlledPlayer = player;
 
 	HUD* hud = player->get_node<HUD>("CanvasLayer/PlayerHUD");
@@ -353,8 +355,11 @@ void PlayerController::ApplyCurrentGun() {
 	IsFullyAccurate = true;
 }
 
-void PlayerController::GunReloadStart(Gun* gun) {
-	IsReloading = true;
+void PlayerController::GunReloadStart() {
+	CharacterController::GunReloadStart();
+
+	Gun* gun = ControlledPlayer->GetCurrentGun();
+
 	CurReloadTime = 0.0;
 	ReloadBar->set_value(0.0);
 	ReloadBar->set_max(gun->GunDef->ReloadTime);
@@ -367,45 +372,25 @@ void PlayerController::ProcessReload(double delta) {
 }
 
 void PlayerController::GunReloadEnd() {
-	IsReloading = false;
+	CharacterController::GunReloadEnd();
+
 	ReloadBar->set_visible(false);
 	UpdateAmmoLabel();
 }
 
 void PlayerController::OnGunFired() {
-	ApplyRecoil();
+	CharacterController::OnGunFired();
 	UpdateAmmoLabel();
 }
 
+void PlayerController::EnableInaccuracyRecovery() {
+	CharacterController::EnableInaccuracyRecovery();
+}
+
 void PlayerController::ApplyRecoil() {
-	CanRecoverInaccuracy = false;
-	IsFullyAccurate = false;
-
-	double newInaccuracy = ControlledPlayer->Inaccuracy + ControlledPlayer->Recoil;
-	if (newInaccuracy > ControlledPlayer->MaxInaccuracy) {
-		newInaccuracy = ControlledPlayer->MaxInaccuracy;
-	}
-
-	ControlledPlayer->Inaccuracy = newInaccuracy;
+	CharacterController::ApplyRecoil();
 
 	InaccuracyTimer->start((float)ControlledPlayer->InaccuracyRegenDelay);
-}
-
-void PlayerController::EnableInaccuracyRecovery() {
-	CanRecoverInaccuracy = true;
-}
-
-void PlayerController::RecoverInaccuracy(double delta) {
-	double regenStep = ControlledPlayer->InaccuracyRegen * delta;
-	double newInaccuracy = ControlledPlayer->Inaccuracy - regenStep;
-
-	if (ControlledPlayer->MinInaccuracy > newInaccuracy) {
-		newInaccuracy = ControlledPlayer->MinInaccuracy;
-		CanRecoverInaccuracy = false;
-		IsFullyAccurate = true;
-	}
-
-	ControlledPlayer->Inaccuracy = newInaccuracy;
 }
 
 // Temp

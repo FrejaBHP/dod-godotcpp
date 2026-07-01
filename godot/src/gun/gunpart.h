@@ -7,6 +7,7 @@
 
 class GunPart {
 public:
+	std::string Name { "" };
 	int32_t PartRarity { 0 };
 	int32_t PartNum { 0 };
 	std::vector<Attribute> Bonuses;
@@ -46,13 +47,13 @@ class GripComponent : public GunPart {
 };
 
 class AccessoryComponent : public GunPart {
-public:
-	std::string Name { "" };
+	
 };
 
+class PrefixComponent : public GunPart {
 
+};
 
 class TitleComponent : public GunPart {
-public:
-	std::string Title { "" };
+
 };

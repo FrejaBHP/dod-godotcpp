@@ -526,25 +526,142 @@ MGAcc3Shattering::MGAcc3Shattering() {
 }
 
 
+CRPrefixQ0::CRPrefixQ0() {
+	Name = "Combat";
+	Bonuses = {};
+}
+
+CRPrefixQ1::CRPrefixQ1() {
+	Name = "Battle";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.06 }
+	};
+}
+
+CRPrefixQ2::CRPrefixQ2() {
+	Name = "War";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.09 }
+	};
+}
+
+CRPrefixQ3::CRPrefixQ3() {
+	Name = "Atrocity";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.12 }
+	};
+}
+
+CRPrefixShort::CRPrefixShort() {
+	Name = "Short";
+	PartRarity = 1;
+	Bonuses = {
+		// Tech +3
+		{ EAttributeType::ReloadSpeed, 0, 0.6 },
+		{ EAttributeType::Recoil, 0, -1.0 }
+	};
+}
+
+CRPrefixPunishing::CRPrefixPunishing() {
+	Name = "Punishing";
+	PartRarity = 1;
+	Bonuses = {
+		// Knockback +50%
+		{ EAttributeType::Damage, 0, 0.2 }
+	};
+}
+
+MGPrefixQ0::MGPrefixQ0() {
+	Name = "Light";
+	Bonuses = {};
+}
+
+MGPrefixQ1::MGPrefixQ1() {
+	Name = "Support";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.06 }
+	};
+}
+
+MGPrefixQ2::MGPrefixQ2() {
+	Name = "Heavy";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.09 }
+	};
+}
+
+MGPrefixQ3::MGPrefixQ3() {
+	Name = "Max";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.12 }
+	};
+}
+
+MGPrefixRowdy::MGPrefixRowdy() {
+	Name = "Rowdy";
+	PartRarity = 1;
+	Bonuses = {
+		// Tech +2
+		{ EAttributeType::MagSize, 0, 0.3 },
+		{ EAttributeType::Spread, 0, 0.1 }
+	};
+}
+
+MGPrefixShattering::MGPrefixShattering() {
+	Name = "Shattering";
+	PartRarity = 1;
+	Bonuses = {
+		// Knockback +50%
+		{ EAttributeType::Damage, 0, 0.2 }
+	};
+}
+
+MGPrefixFrantic::MGPrefixFrantic() {
+	Name = "Frantic";
+	PartRarity = 0;
+	Bonuses = {
+		// Tech +2
+		// { EAttributeType::MagSize, 0, 0.3 }
+	};
+}
+
+MGPrefixGlorious::MGPrefixGlorious() {
+	Name = "Glorious";
+	PartRarity = 1;
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::MagSize, 0, 0.3 },
+		{ EAttributeType::Recoil, 0, -1.0 },
+		{ EAttributeType::InaccuracyRegen, 0, 1.0 }
+	};
+}
+
+
 CRTitleDefault::CRTitleDefault() {
-	Title = "Rifle";
+	Name = "Rifle";
 	Bonuses = {};
 }
 
 CRTitlePounder::CRTitlePounder() {
-	Title = "Pounder";
+	Name = "Pounder";
 	Bonuses = {};
 }
 
 CRTitleCobra::CRTitleCobra() {
-	Title = "Cobra";
+	Name = "Cobra";
 	Bonuses = {
 		{ EAttributeType::Recoil, 0, -0.4 }
 	};
 }
 
 CRTitleStomper::CRTitleStomper() {
-	Title = "Stomper";
+	Name = "Stomper";
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.5 },
 		{ EAttributeType::ProjectileSpeed, 0, -2.0 }
@@ -552,26 +669,26 @@ CRTitleStomper::CRTitleStomper() {
 }
 
 MGTitleDefault::MGTitleDefault() {
-	Title = "Machine Gun";
+	Name = "Machine Gun";
 	Bonuses = {};
 }
 
 MGTitleMauler::MGTitleMauler() {
-	Title = "Mauler";
+	Name = "Mauler";
 	Bonuses = {
 		{ EAttributeType::Damage, 0, 0.15 }
 	};
 }
 
 MGTitleHavoc::MGTitleHavoc() {
-	Title = "Havoc";
+	Name = "Havoc";
 	Bonuses = {
 		{ EAttributeType::MagSize, 0, 0.2 }
 	};
 }
 
 MGTitleMassacre::MGTitleMassacre() {
-	Title = "Massacre";
+	Name = "Massacre";
 	Bonuses = {
 		{ EAttributeType::Recoil, 0, -0.4 }
 	};

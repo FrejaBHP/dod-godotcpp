@@ -1,66 +1,13 @@
 #include "gun/gunDefinition.h"
 
-// using namespace godot;
+#include <format>
 
 GunDefinition::GunDefinition() {
 
 }
-// Forældet, gemt til ældre debug kommando - fjern senere
-void GunDefinition::SetRepeaterStats() {
-	GunType = EGunType::Pistol;
-	GunSubType = EGunSubType::Repeater;
-	FireMode = EFireMode::Semi;
-	DefaultPrefix = "Bad";
-
-	BaseDamage = 6.0;
-	BaseFireTime = 225;
-	BaseMagSize = 12;
-	BaseReloadTime = 2.0;
-
-	BaseSpread = 2.0;
-	BaseRecoil = 2.0;
-	BaseMinInaccuracy = 1.5;
-	BaseMaxInaccuracy = 8;
-	BaseInaccuracyRegen = 12;
-}
-
-void GunDefinition::SetSMGStats() {
-	GunType = EGunType::SMG;
-	GunSubType = EGunSubType::None;
-	FireMode = EFireMode::Automatic;
-	DefaultPrefix = "Patrol";
-
-	BaseDamage = 3.0;
-	BaseFireTime = 150;
-	BaseMagSize = 28;
-	BaseReloadTime = 2.2;
-
-	BaseSpread = 2.0;
-	BaseRecoil = 1.5;
-	BaseMinInaccuracy = 2;
-	BaseMaxInaccuracy = 10;
-	BaseInaccuracyRegen = 10;
-}
-
-void GunDefinition::SetARStats() {
-	GunType = EGunType::Rifle;
-	GunSubType = EGunSubType::CombatRifle;
-	FireMode = EFireMode::Automatic;
-	DefaultPrefix = "Combat";
-
-	BaseDamage = 5.0;
-	BaseFireTime = 200;
-	BaseMagSize = 15;
-	BaseReloadTime = 2.4;
-
-	BaseSpread = 1.3;
-	BaseRecoil = 3.5;
-	BaseMinInaccuracy = 1.5;
-	BaseMaxInaccuracy = 12;
-	BaseInaccuracyRegen = 8;
-}
 
 void GunDefinition::AssembleRandomGun() {}
+std::unique_ptr<PrefixComponent> GunDefinition::GetEligiblePrefix() { return nullptr; }
 std::unique_ptr<TitleComponent> GunDefinition::GetEligibleTitle() { return nullptr; }
 
 void GunDefinition::ApplyPartsBonuses() {
@@ -118,10 +65,20 @@ void GunDefinition::ApplyPartsBonuses() {
 }
 
 void GunDefinition::FinaliseGun() {
-	size_t numtitlebonuses = 0;
+	size_t numPrefixBonuses = 0;
+	size_t numTitleBonuses = 0;
 
-	if (Title.get() != nullptr) {
-		numtitlebonuses = Title->Bonuses.size();
+	if (Prefix.get()) {
+		numPrefixBonuses = Prefix->Bonuses.size();
+
+		for (size_t i = 0; i < Prefix->Bonuses.size(); i++) {
+			AttrBonuses[Prefix->Bonuses[i].AttrType] += Prefix->Bonuses[i];
+		}
+		RarityScore += Prefix->PartRarity;
+	}
+
+	if (Title.get()) {
+		numTitleBonuses = Title->Bonuses.size();
 
 		for (size_t i = 0; i < Title->Bonuses.size(); i++) {
 			AttrBonuses[Title->Bonuses[i].AttrType] += Title->Bonuses[i];
@@ -129,43 +86,49 @@ void GunDefinition::FinaliseGun() {
 		RarityScore += Title->PartRarity;
 	}
 
-	if (numtitlebonuses != 0) {
+	if (numPrefixBonuses != 0 || numTitleBonuses != 0) {
 		CalculateStats();
 	}
 
-	std::string prefix = "";
-	std::string suffix = "";
+	std::string appliedPrefix = "";
+	std::string appliedTitle = "";
 
-	if (Accessory.get() != nullptr) {
-		prefix = Accessory->Name;
+	if (Prefix.get()) {
+		appliedPrefix = Prefix->Name;
+	}
+	else if (Accessory.get()) {
+		appliedPrefix = Accessory->Name;
 	}
 
-	if (Title.get() != nullptr) {
-		suffix = Title->Title;
+	if (Title.get()) {
+		appliedTitle = Title->Name;
 	}
 
-	// If nothing has taken the place of the prefix, use default (so far)
-	if (prefix == "") {
-		prefix = DefaultPrefix;
+	// If nothing has taken the place of the prefix, report
+	if (appliedPrefix == "") {
+		appliedPrefix = "PLACEHOLDER";
 	}
 
-	GunName = prefix + " " + suffix;
+	GunName = appliedPrefix + " " + appliedTitle;
 
 	MetaMagAmmo = MagSize;
 }
 
 void GunDefinition::CalculateStats() {
-	Damage = (BaseDamage + AttrBonuses[EAttributeType::Damage].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::Damage].Scale);
+	Damage = ((GetBaseScaled(Level) + AttrBonuses[EAttributeType::Damage].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::Damage].Scale)) * DamageModifier;
 
 	double fireRate = (1000 / BaseFireTime) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::FireRate].Scale);
 	FireTime = (1 / fireRate) * 1000;
 
 	MagSize = (BaseMagSize + AttrBonuses[EAttributeType::MagSize].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::MagSize].Scale);
 
-	double reloadSpeed = (1 / BaseReloadTime) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::ReloadSpeed].Scale);
-	ReloadTime = 1 / reloadSpeed;
+	ReloadTime = BaseReloadTime * Attribute::GetAdjustedScale(-AttrBonuses[EAttributeType::ReloadSpeed].Scale);
 
 	ProjectileCount = (BaseProjectileCount + AttrBonuses[EAttributeType::ProjectileCount].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::ProjectileCount].Scale);
+	if (ProjectileCount < 1) {
+		ProjectileCount = 1;
+	}
+
 	ShotCost = (BaseShotCost + AttrBonuses[EAttributeType::ShotCost].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::ShotCost].Scale);
 
 	Spread = (BaseSpread + AttrBonuses[EAttributeType::Spread].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::Spread].Scale);
@@ -178,6 +141,58 @@ void GunDefinition::CalculateStats() {
 
 	ProjectileSpeed = (BaseProjectileSpeed + AttrBonuses[EAttributeType::ProjectileSpeed].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::ProjectileSpeed].Scale);
 	Accuracy = (1 - (Spread / 12)) * 100;
+}
+
+std::string GunDefinition::GetGunPartsString() {
+	char buffer[256];
+
+	int32_t matNum = -1;
+	int32_t matRar = -1;
+	if (Material.get()) {
+		matNum = Material->PartNum;
+		matRar = Material->PartRarity;
+	}
+
+	int32_t bodyNum = -1;
+	int32_t bodyRar = -1;
+	if (Body.get()) {
+		bodyNum = Body->PartNum;
+		bodyRar = Body->PartRarity;
+	}
+
+	int32_t barrelNum = -1;
+	int32_t barrelRar = -1;
+	if (Barrel.get()) {
+		barrelNum = Barrel->PartNum;
+		barrelRar = Barrel->PartRarity;
+	}
+
+	int32_t magNum = -1;
+	int32_t magRar = -1;
+	if (Magazine.get()) {
+		magNum = Magazine->PartNum;
+		magRar = Magazine->PartRarity;
+	}
+
+	int32_t stockNum = -1;
+	int32_t stockRar = -1;
+	if (Stock.get()) {
+		stockNum = Stock->PartNum;
+		stockRar = Stock->PartRarity;
+	}
+
+	int32_t accNum = -1;
+	int32_t accRar = -1;
+	if (Accessory.get()) {
+		accNum = Accessory->PartNum;
+		accRar = Accessory->PartRarity;
+	}
+
+	std::snprintf(buffer, 256, "PART NUMBER/RARITY\nMaterial: %d/%d\nBody: %d/%d\nBarrel: %d/%d\nMagazine: %d/%d\nStock: %d/%d\nAccessory %d/%d", matNum, matRar, bodyNum, bodyRar, barrelNum, barrelRar, magNum, magRar, stockNum, stockRar, accNum, accRar);
+
+	std::string gunString = buffer;
+
+	return gunString;
 }
 
 GunDefinition::~GunDefinition() {

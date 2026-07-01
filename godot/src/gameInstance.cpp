@@ -12,11 +12,12 @@
 #include "world.h"
 #include "gun/gun.h"
 
+#include "gun/parts/catalogueMaterials.h"
 #include "gun/types/gdSMG.h"
 #include "gun/types/gdPistol.h"
 #include "gun/types/gdRifle.h"
-
-#include "gun/parts/catalogueMaterials.h"
+#include "gun/types/gdShotgun.h"
+#include "gun/types/gdRevolver.h"
 
 #include "enemies/enemyGun.h"
 
@@ -34,7 +35,7 @@ std::shared_ptr<GunDefinition> GameInstance::GenerateGunDef(int32_t type) {
 	std::shared_ptr<GunDefinition> gundef;
 
 	if (type == -1) {
-		type = GetRandomInt(0, 2);
+		type = GetRandomInt(0, 4);
 	}
 
 	if (type == 0) {
@@ -43,8 +44,14 @@ std::shared_ptr<GunDefinition> GameInstance::GenerateGunDef(int32_t type) {
 	else if (type == 1) {
 		gundef = std::make_shared<GDSMG>();
 	}
-	else {
+	else if (type == 2) {
 		gundef = std::make_shared<GDRifle>();
+	}
+	else if (type == 3) {
+		gundef = std::make_shared<GDShotgun>();
+	}
+	else {
+		gundef = std::make_shared<GDRevolver>();
 	}
 
 	int32_t manuIndex = GetRandomInt(0, (int32_t)EManufacturer::COUNT - 1);

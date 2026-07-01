@@ -1,10 +1,13 @@
 #pragma once
 
-#include <cstdint>
 #include "shared/enums.h"
 #include "gun/gunpart.h"
+#include "shared/utility.h"
+
+#include <cstdint>
 #include <memory>
 #include <map>
+#include <string>
 
 // using namespace godot;
 
@@ -14,13 +17,10 @@ public:
 	~GunDefinition();
 
 	virtual void AssembleRandomGun();
-
-	void SetRepeaterStats();
-	void SetSMGStats();
-	void SetARStats();
-
 	virtual void ApplyPartsBonuses();
 	void FinaliseGun();
+
+	virtual std::string GetGunPartsString();
 
 	EManufacturer Manufacturer { EManufacturer::Placeholder };
 	EGunType GunType { EGunType::None };
@@ -29,15 +29,16 @@ public:
 	EFireMode FireMode { EFireMode::Automatic };
 
 	std::string GunName { "" };
-	std::string DefaultPrefix { "" };
 
-	double BaseDamage { 0.0 };
+	int32_t Level { 1 };
+	double DamageModifier { 1.0 };
+
 	int32_t BaseProjectileCount { 1 };
 	int32_t BaseShotCost { 1 };
 	double BaseFireTime { 1000.0 }; // In milliseconds
 	int32_t BaseMagSize { 0 };
 	double BaseReloadTime { 0.0 }; // In seconds
-	double BaseProjectileSpeed { 500.0 };
+	double BaseProjectileSpeed { 800.0 };
 	int32_t BaseBurstCount { 3 };
 
 	double BaseSpread { 0.0 };
@@ -48,23 +49,24 @@ public:
 	double BaseInaccuracyRegenDelay { 0.2 };
 
 	double Damage { 0.0 };
-	int32_t ProjectileCount { 1 };
-	int32_t ShotCost { 1 };
-	double FireTime { 1000.0 };
-	int32_t MagSize { 0 };
-	double ReloadTime { 0.0 };
-	double ProjectileSpeed { 500.0 };
-	int32_t BurstCount { 3 };
+	double Accuracy { 100.0 };
 
-	double Spread { 0.0 };
-	double Recoil { 0.0 };
-	double MinInaccuracy { 0.0 };
-	double MaxInaccuracy { 0.0 };
-	double InaccuracyRegen { 0.0 };
-	double InaccuracyRegenDelay { 0.2 };
+	int32_t ProjectileCount = BaseProjectileCount;
+	int32_t ShotCost = BaseShotCost;
+	double FireTime = BaseFireTime; // In milliseconds
+	int32_t MagSize = BaseMagSize;
+	double ReloadTime = BaseReloadTime; // In seconds
+	double ProjectileSpeed = BaseProjectileSpeed;
+	int32_t BurstCount = BaseBurstCount;
+
+	double Spread = BaseSpread;
+	double Recoil = BaseRecoil;
+	double MinInaccuracy = BaseMinInaccuracy;
+	double MaxInaccuracy = BaseMaxInaccuracy;
+	double InaccuracyRegen = BaseInaccuracyRegen;
+	double InaccuracyRegenDelay = BaseInaccuracyRegenDelay;
 
 	int32_t RarityScore { 0 };
-	double Accuracy { 100.0 };
 
 	std::map<EAttributeType, Attribute> AttrBonuses;
 
@@ -76,12 +78,14 @@ public:
 	std::unique_ptr<MagazineComponent> Magazine;
 	std::unique_ptr<StockComponent> Stock;
 	std::unique_ptr<AccessoryComponent> Accessory;
+	std::unique_ptr<PrefixComponent> Prefix;
 	std::unique_ptr<TitleComponent> Title;
 
 	// Metadata
 	int32_t MetaMagAmmo { 0 };
 
 protected:
+	virtual std::unique_ptr<PrefixComponent> GetEligiblePrefix();
 	virtual std::unique_ptr<TitleComponent> GetEligibleTitle();
 	void CalculateStats();
 

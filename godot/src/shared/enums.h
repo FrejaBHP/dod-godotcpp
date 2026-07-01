@@ -25,9 +25,13 @@ enum class EAttributeType {
 	ReloadSpeed,
 
 	BurstCount,
+
+	TechLevel,
 	StatusChance,
 	StatusDamage,
-	StatusDuration
+	StatusDuration,
+
+	SellValue
 };
 
 enum class EFireMode {
@@ -60,7 +64,6 @@ enum class EManufacturer {
 enum class EGunType {
 	None,
 	Pistol,
-	Revolver,
 	SMG,
 	Rifle,
 	Shotgun,
@@ -74,6 +77,7 @@ enum class EGunSubType {
 	// Pistols
 	Repeater,
 	MachinePistol,
+	Revolver,
 
 	// Rifles
 	CombatRifle,

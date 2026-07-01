@@ -11,7 +11,7 @@ void Character::_bind_methods() {
 }
 
 void Character::_ready() {
-	MaxSpeed = 300.f;
+	
 }
 
 void Character::_physics_process(double delta) {

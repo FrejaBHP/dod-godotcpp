@@ -194,6 +194,7 @@ void Gun::ReloadTimerTimeout() {
 void Gun::FinishReload() {
 	// Dirty hacky stuff
 	int32_t* reserveAmmo;
+
 	if (GunDef->GunType == EGunType::Pistol) {
 		reserveAmmo = &OwningCharacter->PistolAmmo;
 	}

@@ -11,9 +11,7 @@ using namespace godot;
 // Ville give god mening at lave mere defineret opførselsmodul/-komponent, som bliver kørt, i stedet for at lave en masse generelt her, men det må vente til senere
 
 void EnemyController::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("ApplyRecoilEN"), &EnemyController::ApplyRecoil);
-	ClassDB::bind_method(D_METHOD("OnGunFiredEN"), &EnemyController::OnGunFired);
-	ClassDB::bind_method(D_METHOD("ReloadEndEN"), &EnemyController::GunReloadEnd);
+	
 }
 
 void EnemyController::_ready() {
@@ -84,47 +82,26 @@ void EnemyController::ApplyCurrentGun() {
 	}
 }
 
-void EnemyController::OnGunFired() {
-	ApplyRecoil();
+void EnemyController::EnableInaccuracyRecovery() {
+	CharacterController::EnableInaccuracyRecovery();
 }
 
 void EnemyController::ApplyRecoil() {
-	CanRecoverInaccuracy = false;
-	IsFullyAccurate = false;
-
-	double newInaccuracy = ControlledChar->Inaccuracy + ControlledChar->Recoil;
-	if (newInaccuracy > ControlledChar->MaxInaccuracy) {
-		newInaccuracy = ControlledChar->MaxInaccuracy;
-	}
-
-	ControlledChar->Inaccuracy = newInaccuracy;
+	CharacterController::ApplyRecoil();
 
 	InaccuracyTimer->start((float)ControlledChar->InaccuracyRegenDelay);
 }
 
-void EnemyController::EnableInaccuracyRecovery() {
-	CanRecoverInaccuracy = true;
-}
-
-void EnemyController::RecoverInaccuracy(double delta) {
-	double regenStep = ControlledChar->InaccuracyRegen * delta;
-	double newInaccuracy = ControlledChar->Inaccuracy - regenStep;
-
-	if (ControlledChar->MinInaccuracy > newInaccuracy) {
-		newInaccuracy = ControlledChar->MinInaccuracy;
-		CanRecoverInaccuracy = false;
-		IsFullyAccurate = true;
-	}
-
-	ControlledChar->Inaccuracy = newInaccuracy;
+void EnemyController::OnGunFired() {
+	CharacterController::OnGunFired();
 }
 
 void EnemyController::GunReloadStart() {
-	IsReloading = true;
+	CharacterController::GunReloadStart();
 }
 
 void EnemyController::GunReloadEnd() {
-	IsReloading = false;
+	CharacterController::GunReloadEnd();
 }
 
 void EnemyController::BindGun(Gun* gun) {

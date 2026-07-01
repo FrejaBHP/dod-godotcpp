@@ -39,7 +39,7 @@ std::unique_ptr<BodyComponent> GetRandomPistolBody() {
 }
 
 std::unique_ptr<BarrelComponent> GetRandomPistolBarrel() {
-	int32_t index = GetRandomInt(0, NumBodies - 1);
+	int32_t index = GetRandomInt(0, NumBarrels - 1);
 	BarrelComponent* barrel;
 
 	switch (index) {
@@ -428,25 +428,130 @@ MPAcc4Rage::MPAcc4Rage() {
 MPAcc5Cold::MPAcc5Cold() {
 	Name = "Cold";
 	PartNum = 5;
-	PartRarity = 3;
+	PartRarity = 2;
 	Bonuses = {
-		// +4 Tech
-		// +200% knockback
+		// Tech +4
+		// Knockback +200%
 		{ EAttributeType::Damage, 0, 0.7 },
 		{ EAttributeType::Recoil, 0, -1.0 },
 		{ EAttributeType::InaccuracyRegen, 0, 1.0 },
-		{ EAttributeType::ProjectileSpeed, 0, -3.0 },
+		{ EAttributeType::ProjectileSpeed, 0, -2.0 },
 	};
 }
 
 
+PistolPrefixDouble::PistolPrefixDouble() {
+	Name = "Double";
+	Bonuses = {};
+}
+
+PistolPrefixStabilised::PistolPrefixStabilised() {
+	Name = "Stabilised";
+	Bonuses = {};
+}
+
+RepeaterPrefixQ0::RepeaterPrefixQ0() {
+	Name = "Rough";
+	Bonuses = {};
+}
+
+RepeaterPrefixQ1::RepeaterPrefixQ1() {
+	Name = "Bad";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.06 },
+	};
+}
+
+RepeaterPrefixQ2::RepeaterPrefixQ2() {
+	Name = "Cruel";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.09 },
+	};
+}
+
+RepeaterPrefixQ3::RepeaterPrefixQ3() {
+	Name = "Wicked";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.12 },
+	};
+}
+
+RepeaterPrefixNasty::RepeaterPrefixNasty() {
+	Name = "Nasty";
+	PartRarity = 1;
+	Bonuses = {
+		// Tech +3
+		// Knockback +60%
+		{ EAttributeType::Damage, 0, 0.12 },
+		{ EAttributeType::MagSize, 2, 0.0 },
+		{ EAttributeType::ReloadSpeed, 0, 0.1 },
+	};
+}
+
+RepeaterPrefixNoble::RepeaterPrefixNoble() {
+	Name = "Noble";
+	PartRarity = 1;
+	Bonuses = {
+		// Tech +3
+		{ EAttributeType::Damage, 0, 0.12 },
+		{ EAttributeType::MagSize, 2, 0.0 },
+		{ EAttributeType::ReloadSpeed, 0, 0.1 },
+		{ EAttributeType::InaccuracyMin, 0, -0.25 },
+	};
+}
+
+MPPrefixQ0::MPPrefixQ0() {
+	Name = "Unkind";
+	Bonuses = {};
+}
+
+MPPrefixQ1::MPPrefixQ1() {
+	Name = "Mean";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.06 },
+	};
+}
+
+MPPrefixQ2::MPPrefixQ2() {
+	Name = "Vile";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.09 },
+	};
+}
+
+MPPrefixQ3::MPPrefixQ3() {
+	Name = "Grim";
+	Bonuses = {
+		// Tech +1
+		{ EAttributeType::Damage, 0, 0.12 },
+	};
+}
+
+MPPrefixRaging::MPPrefixRaging() {
+	Name = "Raging";
+	Bonuses = {
+		// Tech +4
+	};
+}
+
+MPPrefixCold::MPPrefixCold() {
+	Name = "Cold";
+	Bonuses = {};
+}
+
+
 RepeaterTitleDefault::RepeaterTitleDefault() {
-	Title = "Repeater";
+	Name = "Repeater";
 	Bonuses = {};
 }
 
 RepeaterTitleNeedler::RepeaterTitleNeedler() {
-	Title = "Needler";
+	Name = "Needler";
 	Bonuses = {
 		{ EAttributeType::MagSize, 2, 0.0 },
 		{ EAttributeType::Recoil, 0, -0.2 },
@@ -454,38 +559,41 @@ RepeaterTitleNeedler::RepeaterTitleNeedler() {
 }
 
 RepeaterTitleSwatter::RepeaterTitleSwatter() {
-	Title = "Swatter";
+	Name = "Swatter";
 	Bonuses = {};
 }
 
 RepeaterTitleRaptor::RepeaterTitleRaptor() {
-	Title = "Raptor";
+	Name = "Raptor";
 	Bonuses = {};
 }
 
 MPTitleDefault::MPTitleDefault() {
-	Title = "Machine Pistol";
+	Name = "Machine Pistol";
 	Bonuses = {};
 }
 
 MPTitleTorment::MPTitleTorment() {
-	Title = "Torment";
+	Name = "Torment";
+	PartRarity = 1;
 	Bonuses = {
+		// Tech +3
 		{ EAttributeType::Damage, 0, 0.1 },
 		{ EAttributeType::MagSize, 2, 0.0 },
 	};
 }
 
 MPTitleFury::MPTitleFury() {
-	Title = "Fury";
+	Name = "Fury";
+	PartRarity = 1;
 	Bonuses = {
-		{ EAttributeType::Spread, 0, -0.6 },
+		{ EAttributeType::Spread, 0, 0.6 },
 		{ EAttributeType::FireRate, 0, 0.25 },
 		{ EAttributeType::MagSize, 0, 0.3 },
 	};
 }
 
 MPTitleRage::MPTitleRage() {
-	Title = "Rage";
+	Name = "Rage";
 	Bonuses = {};
 }

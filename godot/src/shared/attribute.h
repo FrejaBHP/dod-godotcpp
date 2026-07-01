@@ -4,7 +4,6 @@
 #include "shared/enums.h"
 
 class Attribute {
-
 public:
 	EAttributeType AttrType;
 	int32_t Flat;

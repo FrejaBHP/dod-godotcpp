@@ -3,18 +3,6 @@
 
 GDPistol::GDPistol() {
 	GunType = EGunType::Pistol;
-	DefaultPrefix = "Bad";
-
-	BaseDamage = 6.0;
-	BaseFireTime = 275;
-	BaseMagSize = 12;
-	BaseReloadTime = 2.0;
-
-	BaseSpread = 2.0;
-	BaseRecoil = 2.0;
-	BaseMinInaccuracy = 1.5;
-	BaseMaxInaccuracy = 8;
-	BaseInaccuracyRegen = 12;
 }
 
 void GDPistol::AssembleRandomGun() {
@@ -23,8 +11,8 @@ void GDPistol::AssembleRandomGun() {
 	if (Body->PartNum == 5) {
 		GunSubType = EGunSubType::MachinePistol;
 		FireMode = EFireMode::Automatic;
+		DamageModifier = 0.9;
 
-		BaseDamage = 6.0;
 		BaseFireTime = 120;
 		BaseMagSize = 16;
 		BaseReloadTime = 2.25;
@@ -41,9 +29,9 @@ void GDPistol::AssembleRandomGun() {
 	else {
 		GunSubType = EGunSubType::Repeater;
 		FireMode = EFireMode::Semi;
+		DamageModifier = 1.0;
 
-		BaseDamage = 6.0;
-		BaseFireTime = 275;
+		BaseFireTime = 300;
 		BaseMagSize = 12;
 		BaseReloadTime = 2.0;
 
@@ -62,6 +50,7 @@ void GDPistol::AssembleRandomGun() {
 	
 	ApplyPartsBonuses();
 
+	Prefix = GetEligiblePrefix();
 	Title = GetEligibleTitle();
 }
 
@@ -77,6 +66,65 @@ void GDPistol::ApplyPartsBonuses() {
 
 	// FIXME: Skal fjernes senere
 	CalculateStats();
+}
+
+std::unique_ptr<PrefixComponent> GDPistol::GetEligiblePrefix() {
+	PrefixComponent* prefix;
+
+	if (GunSubType == EGunSubType::Repeater) {
+		if (AttrBonuses[EAttributeType::Damage].Scale > 0.3 && MagSize > 16) {
+			prefix = new RepeaterPrefixNasty();
+		}
+		else if (AttrBonuses[EAttributeType::Damage].Scale > 0.2 && MagSize > 14) {
+			prefix = new RepeaterPrefixNoble();
+		}
+		else if (Accessory->PartNum == 3) {
+			prefix = new PistolPrefixDouble();
+		}
+		else if (Accessory->PartNum == 1) {
+			prefix = new PistolPrefixStabilised();
+		}
+		else if (RarityScore >= PrefixQ3Min) {
+			prefix = new RepeaterPrefixQ3();
+		}
+		else if (RarityScore >= PrefixQ2Min) {
+			prefix = new RepeaterPrefixQ2();
+		}
+		else if (RarityScore >= PrefixQ1Min) {
+			prefix = new RepeaterPrefixQ1();
+		}
+		else {
+			prefix = new RepeaterPrefixQ0();
+		}
+	}
+	else {
+		if (Accessory->PartNum == 5) {
+			prefix = new MPPrefixCold();
+		}
+		else if (Accessory->PartNum == 4) {
+			prefix = new MPPrefixRaging();
+		}
+		else if (Accessory->PartNum == 3) {
+			prefix = new PistolPrefixDouble();
+		}
+		else if (Accessory->PartNum == 1) {
+			prefix = new PistolPrefixStabilised();
+		}
+		else if (RarityScore >= PrefixQ3Min) {
+			prefix = new MPPrefixQ3();
+		}
+		else if (RarityScore >= PrefixQ2Min) {
+			prefix = new MPPrefixQ2();
+		}
+		else if (RarityScore >= PrefixQ1Min) {
+			prefix = new MPPrefixQ1();
+		}
+		else {
+			prefix = new MPPrefixQ0();
+		}
+	}
+
+	return std::unique_ptr<PrefixComponent>(prefix);
 }
 
 std::unique_ptr<TitleComponent> GDPistol::GetEligibleTitle() {
@@ -112,4 +160,23 @@ std::unique_ptr<TitleComponent> GDPistol::GetEligibleTitle() {
 	}
 	
 	return std::unique_ptr<TitleComponent>(title);
+}
+
+std::string GDPistol::GetGunPartsString() {
+	std::string og = GunDefinition::GetGunPartsString();
+
+	char buffer[64];
+
+	int32_t actionNum = -1;
+	int32_t actionRar = -1;
+	if (Action.get()) {
+		actionNum = Action->PartNum;
+		actionRar = Action->PartRarity;
+	}
+
+	snprintf(buffer, 64, "\nAction: %d/%d", actionNum, actionRar);
+
+	std::string pistolString = og + buffer;
+
+	return pistolString;
 }

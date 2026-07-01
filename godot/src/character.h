@@ -40,7 +40,7 @@ protected:
 
 	Gun* CurrentGun = nullptr;
 
-	float MaxSpeed;
+	float MaxSpeed { 100.f };
 
 private:
 };

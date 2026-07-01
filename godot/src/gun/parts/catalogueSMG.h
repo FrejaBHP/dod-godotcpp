@@ -145,6 +145,43 @@ public:
 };
 
 
+class SMGPrefixQ0 : public PrefixComponent {
+public:
+	SMGPrefixQ0();
+};
+
+class SMGPrefixQ1 : public PrefixComponent {
+public:
+	SMGPrefixQ1();
+};
+
+class SMGPrefixQ2 : public PrefixComponent {
+public:
+	SMGPrefixQ2();
+};
+
+class SMGPrefixQ3 : public PrefixComponent {
+public:
+	SMGPrefixQ3();
+};
+
+class SMGPrefixRuthless : public PrefixComponent {
+public:
+	SMGPrefixRuthless();
+};
+
+class SMGPrefixRelentless : public PrefixComponent {
+public:
+	SMGPrefixRelentless();
+};
+
+class SMGPrefixDouble : public PrefixComponent {
+public:
+	SMGPrefixDouble();
+};
+
+
+
 class SMGTitleDefault : public TitleComponent {
 public:
 	SMGTitleDefault();

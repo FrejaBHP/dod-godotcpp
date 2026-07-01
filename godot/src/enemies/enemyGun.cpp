@@ -14,7 +14,7 @@ void EnemyGun::_ready() {
 	add_to_group("Character");
 	add_to_group("EnemyGun");
 
-	MaxSpeed = 150.f;
+	MaxSpeed = 100.f;
 
 	PistolAmmo = -1;
 	SMGAmmo = -1;
@@ -46,6 +46,7 @@ void EnemyGun::Die() {
 }
 
 void EnemyGun::OnDeath() {
+	CurrentGun->MagAmmo = CurrentGun->GunDef->MagSize;
 	GameInstance::GetInstance().CopyEquippedGunToDrop(CurrentGun, get_global_position());
 	queue_free();
 }

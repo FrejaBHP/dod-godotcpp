@@ -2,9 +2,9 @@
 
 #include "gun/gunDefinition.h"
 
-class GDSMG : public GunDefinition {
+class GDShotgun : public GunDefinition {
 public:
-	GDSMG();
+	GDShotgun();
 	void AssembleRandomGun() override;
 
 protected:

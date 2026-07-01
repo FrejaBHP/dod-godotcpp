@@ -1,6 +1,5 @@
 #include "gun/types/gdRifle.h"
 #include "gun/parts/catalogueRifle.h"
-#include "shared/utility.h"
 
 GDRifle::GDRifle() {
 	GunType = EGunType::Rifle;
@@ -12,9 +11,8 @@ void GDRifle::AssembleRandomGun() {
 	if (subtype == 0) {
 		GunSubType = EGunSubType::CombatRifle;
 		FireMode = EFireMode::Burst;
-		DefaultPrefix = "Combat";
+		DamageModifier = 1.2;
 
-		BaseDamage = 6.0;
 		BaseFireTime = 100;
 		BaseMagSize = 12;
 		BaseReloadTime = 2.4;
@@ -38,10 +36,8 @@ void GDRifle::AssembleRandomGun() {
 	else {
 		GunSubType = EGunSubType::MachineGun;
 		FireMode = EFireMode::Automatic;
-		DefaultPrefix = "Combat";
 
-		BaseDamage = 6.0;
-		BaseFireTime = 167;
+		BaseFireTime = 170;
 		BaseMagSize = 24;
 		BaseReloadTime = 3.0;
 
@@ -60,6 +56,7 @@ void GDRifle::AssembleRandomGun() {
 
 	ApplyPartsBonuses();
 
+	Prefix = GetEligiblePrefix();
 	Title = GetEligibleTitle();
 }
 
@@ -68,6 +65,56 @@ void GDRifle::ApplyPartsBonuses() {
 
 	// FIXME: Skal fjernes senere
 	CalculateStats();
+}
+
+std::unique_ptr<PrefixComponent> GDRifle::GetEligiblePrefix() {
+	PrefixComponent* prefix;
+
+	if (GunSubType == EGunSubType::CombatRifle) {
+		if (AttrBonuses[EAttributeType::Damage].Scale >= 0.67) {
+			prefix = new CRPrefixPunishing();
+		}
+		else if (AttrBonuses[EAttributeType::Damage].Scale < -0.08) {
+			prefix = new CRPrefixShort();
+		}
+		else if (RarityScore >= PrefixQ3Min) {
+			prefix = new CRPrefixQ3();
+		}
+		else if (RarityScore >= PrefixQ2Min) {
+			prefix = new CRPrefixQ2();
+		}
+		else if (RarityScore >= PrefixQ1Min) {
+			prefix = new CRPrefixQ1();
+		}
+		else {
+			prefix = new CRPrefixQ0();
+		}
+	}
+	else {
+		if (Recoil <= 1.85 && RarityScore >= PrefixQ1Min) {
+			prefix = new MGPrefixGlorious();
+		}
+		else if (Accessory->PartNum == 3) {
+			prefix = new MGPrefixShattering();
+		}
+		else if (RarityScore >= PrefixQ3Min) {
+			prefix = new MGPrefixQ3();
+		}
+		else if (Spread >= 3.0) {
+			prefix = new MGPrefixRowdy();
+		}
+		else if (RarityScore >= PrefixQ2Min) {
+			prefix = new MGPrefixQ2();
+		}
+		else if (RarityScore >= PrefixQ1Min) {
+			prefix = new MGPrefixQ1();
+		}
+		else {
+			prefix = new MGPrefixQ0();
+		}
+	}
+
+	return std::unique_ptr<PrefixComponent>(prefix);
 }
 
 std::unique_ptr<TitleComponent> GDRifle::GetEligibleTitle() {

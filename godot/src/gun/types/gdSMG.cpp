@@ -5,10 +5,9 @@ GDSMG::GDSMG() {
 	GunType = EGunType::SMG;
 	GunSubType = EGunSubType::None;
 	FireMode = EFireMode::Automatic;
-	DefaultPrefix = "Patrol";
+	DamageModifier = 0.8;
 
-	BaseDamage = 3.0;
-	BaseFireTime = 150;
+	BaseFireTime = 120;
 	BaseMagSize = 28;
 	BaseReloadTime = 2.2;
 
@@ -28,7 +27,36 @@ void GDSMG::AssembleRandomGun() {
 
 	ApplyPartsBonuses();
 
+	Prefix = GetEligiblePrefix();
 	Title = GetEligibleTitle();
+}
+
+std::unique_ptr<PrefixComponent> GDSMG::GetEligiblePrefix() {
+	PrefixComponent* prefix;
+
+	if (Accessory->PartNum == 4) {
+		prefix = new SMGPrefixDouble();
+	}
+	else if (Accessory->PartNum == 2) {
+		prefix = new SMGPrefixRuthless();
+	}
+	else if (Accessory->PartNum == 1) {
+		prefix = new SMGPrefixRelentless();
+	}
+	else if (RarityScore >= PrefixQ3Min) {
+		prefix = new SMGPrefixQ3();
+	}
+	else if (RarityScore >= PrefixQ2Min) {
+		prefix = new SMGPrefixQ2();
+	}
+	else if (RarityScore >= PrefixQ1Min) {
+		prefix = new SMGPrefixQ1();
+	}
+	else {
+		prefix = new SMGPrefixQ0();
+	}
+
+	return std::unique_ptr<PrefixComponent>(prefix);
 }
 
 std::unique_ptr<TitleComponent> GDSMG::GetEligibleTitle() {
