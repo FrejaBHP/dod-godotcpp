@@ -195,6 +195,10 @@ std::string GunDefinition::GetGunPartsString() {
 	return gunString;
 }
 
+Ref<AudioStream> GunDefinition::GetPriFireAudio() const {
+	return PriFireAudio;
+}
+
 GunDefinition::~GunDefinition() {
 
 }

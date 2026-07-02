@@ -1,4 +1,5 @@
 #include "shared/utility.h"
+#include <godot_cpp/classes/resource_loader.hpp>
 
 std::random_device rnd;
 std::mt19937 gen(rnd());
@@ -26,6 +27,13 @@ double GetBaseScaled(int32_t level) {
 	double base = 0.8 * (pow(level, 1.3) + 9);
 
 	return base;
+}
+
+godot::Ref<godot::AudioStream> GetAudio(godot::String name) {
+	godot::ResourceLoader* loader = godot::ResourceLoader::get_singleton();
+
+	godot::Ref<godot::AudioStream> audio = loader->load("res://assets/sounds/" + name);
+	return audio;
 }
 
 godot::Color GetRarityColour(int32_t rarity) {

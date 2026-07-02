@@ -1,14 +1,17 @@
+#include "gun/gun.h"
+
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/window.hpp>
+#include <godot_cpp/classes/audio_stream_player2d.hpp>
+#include <godot_cpp/classes/audio_stream_randomizer.hpp>
 
-#include "gun/gun.h"
 #include "character.h"
 #include "player/playerController.h"
 #include "projectiles/projectile.h"
 #include "shared/utility.h"
 
-using namespace godot;
+// FIXME: Lyd forsvinder, når Gun forsvinder. Udskyd gerne queue_free() indtil lyd er færdig med at spille
 
 void Gun::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("gun_fired"));
@@ -18,6 +21,12 @@ void Gun::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("PrimaryFire"), &Gun::PrimaryFireSingle);
 	ClassDB::bind_method(D_METHOD("TryReload"), &Gun::TryReload);
 	ClassDB::bind_method(D_METHOD("Reload"), &Gun::FinishReload);
+}
+
+// Finished kaldes, når én lyd er færdig med at spille. Det gælder ikke, når lyd bliver overskrevet
+// Kan bruge is_playing() til at se, om der stadig er andre lyde i gang med polyphony - returnerer 0 ved slut på sidste lyd
+void Gun::TestFunction() {
+	print_line(vformat("Stream finished. Still playing? %d", (int)StreamPlayer->is_playing()));
 }
 
 Gun::Gun() {
@@ -33,6 +42,17 @@ void Gun::_ready() {
 	ReloadTimer = get_node<Timer>("ReloadTimer");
 	ReloadTimer->connect("timeout", callable_mp(this, &Gun::ReloadTimerTimeout));
 	ReloadTimer->set_one_shot(true);
+
+	// Audio
+	StreamPlayer = get_node<AudioStreamPlayer2D>("GunAudioStream");
+	StreamPlayer->set_max_polyphony(5);
+	StreamPlayer->connect("finished", callable_mp(this, &Gun::TestFunction));
+
+	StreamRandomiser.instantiate();
+	StreamPlayer->set_stream(StreamRandomiser);
+
+	StreamRandomiser->set_random_pitch(1.05f);
+	StreamRandomiser.ptr()->add_stream(0, GunDef->GetPriFireAudio());
 }
 
 void Gun::_process(double delta) {
@@ -96,6 +116,10 @@ void Gun::PrimaryFireSingle(const Vector2 from, const Vector2 towards) {
 				proj->look_at(towards);
 
 				AdjustFiringAngle(proj);
+			}
+
+			if (StreamRandomiser->get_streams_count() > 0) {
+				StreamPlayer->play();
 			}
 
 			if (GunDef->ShotCost > MagAmmo) {

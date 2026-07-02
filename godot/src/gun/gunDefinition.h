@@ -1,5 +1,7 @@
 #pragma once
 
+#include <godot_cpp/classes/audio_stream.hpp>
+
 #include "shared/enums.h"
 #include "gun/gunpart.h"
 #include "shared/utility.h"
@@ -9,7 +11,7 @@
 #include <map>
 #include <string>
 
-// using namespace godot;
+using namespace godot;
 
 class GunDefinition {
 public:
@@ -20,6 +22,7 @@ public:
 	virtual void ApplyPartsBonuses();
 	void FinaliseGun();
 
+	Ref<AudioStream> GetPriFireAudio() const;
 	virtual std::string GetGunPartsString();
 
 	EManufacturer Manufacturer { EManufacturer::Placeholder };
@@ -88,6 +91,8 @@ protected:
 	virtual std::unique_ptr<PrefixComponent> GetEligiblePrefix();
 	virtual std::unique_ptr<TitleComponent> GetEligibleTitle();
 	void CalculateStats();
+
+	Ref<AudioStream> PriFireAudio;
 
 private:
 };

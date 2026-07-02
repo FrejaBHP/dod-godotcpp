@@ -133,29 +133,37 @@ std::unique_ptr<TitleComponent> GDPistol::GetEligibleTitle() {
 	if (GunSubType == EGunSubType::Repeater) {
 		if (FireTime <= 180) {
 			title = new RepeaterTitleNeedler();
+			PriFireAudio = GetAudio("guns/pistol_rep_needler.mp3");
 		}
 		else if (Accuracy >= 91.0) {
 			title = new RepeaterTitleSwatter();
+			PriFireAudio = GetAudio("guns/pistol_rep_swatter.mp3");
 		}
 		else if (Accuracy >= 85.0 && FireTime > 180) {
 			title = new RepeaterTitleRaptor();
+			PriFireAudio = GetAudio("guns/pistol_rep_raptor.mp3");
 		}
 		else {
 			title = new RepeaterTitleDefault();
+			PriFireAudio = GetAudio("guns/pistol_rep_def.mp3");
 		}
 	}
 	else {
 		if (Accessory->PartNum == 4) {
 			title = new MPTitleRage();
+			PriFireAudio = GetAudio("guns/pistol_mp_rage.mp3");
 		}
 		else if (AttrBonuses[EAttributeType::Damage].Scale > 0.25) {
 			title = new MPTitleTorment();
+			PriFireAudio = GetAudio("guns/pistol_mp_torment.mp3");
 		}
 		else if (Accuracy <= 79 && FireTime <= 100) { // 75
 			title = new MPTitleFury();
+			PriFireAudio = GetAudio("guns/pistol_mp_fury.mp3");
 		}
 		else {
 			title = new MPTitleDefault();
+			PriFireAudio = GetAudio("guns/pistol_mp_def.mp3");
 		}
 	}
 	

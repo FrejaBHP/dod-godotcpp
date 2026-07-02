@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include <godot_cpp/variant/color.hpp>
+#include <godot_cpp/classes/audio_stream.hpp>
 
 #include "shared/enums.h"
 #include "shared/attribute.h"
@@ -33,6 +34,7 @@ double GetRandomDouble(double min, double max);
 double GetBaseScaled(int32_t level);
 
 godot::Color GetRarityColour(int32_t rarity);
+godot::Ref<godot::AudioStream> GetAudio(godot::String name);
 
 std::string GetManufacturerName(EManufacturer manufacturer);
 std::string GetGunTypeName(EGunType guntype);

@@ -64,18 +64,23 @@ std::unique_ptr<TitleComponent> GDSMG::GetEligibleTitle() {
 
 	if (Magazine->PartNum == 1) {
 		title = new SMGTitleThumper();
+		PriFireAudio = GetAudio("guns/smg_thumper.mp3");
 	}
 	else if (Accessory->PartNum == 4 && Accuracy <= 70.0) {
 		title = new SMGTitleAnarchy();
+		PriFireAudio = GetAudio("guns/smg_anarchy.mp3");
 	}
 	else if (FireTime <= 83) {
 		title = new SMGTitleStinger();
+		PriFireAudio = GetAudio("guns/smg_stinger.mp3");
 	}
 	else if (AttrBonuses[EAttributeType::Damage].Scale >= 0.33) {
 		title = new SMGTitleBruiser();
+		PriFireAudio = GetAudio("guns/smg_bruiser.mp3");
 	}
 	else {
 		title = new SMGTitleDefault();
+		PriFireAudio = GetAudio("guns/smg_def.mp3");
 	}
 
 	return std::unique_ptr<TitleComponent>(title);

@@ -1,15 +1,21 @@
 #pragma once
 
+#include "gun/gunDefinition.h"
+
 #include <godot_cpp/classes/node2d.hpp>
 #include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <chrono>
-#include "gun/gunDefinition.h"
 
 using namespace godot;
 using namespace std::chrono;
 
 class Character;
+
+namespace godot {
+	class AudioStreamRandomizer;
+	class AudioStreamPlayer2D;
+}
 
 class Gun : public Node2D {
 	GDCLASS(Gun, Node2D)
@@ -22,6 +28,8 @@ public:
 	void _process(double delta) override;
 	void _physics_process(double delta) override;
 
+	void TestFunction();
+
 	virtual void BuildGun(std::shared_ptr<GunDefinition> gundef);
 
 	bool TryPrimaryFire(const Vector2 from, const Vector2 towards);
@@ -32,6 +40,8 @@ public:
 
 	Character* OwningCharacter = nullptr;
 	Timer* ReloadTimer = nullptr;
+	AudioStreamPlayer2D* StreamPlayer = nullptr;
+	Ref<AudioStreamRandomizer> StreamRandomiser;
 
 	int32_t MagAmmo { 0 };
 

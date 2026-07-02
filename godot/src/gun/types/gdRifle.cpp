@@ -123,29 +123,37 @@ std::unique_ptr<TitleComponent> GDRifle::GetEligibleTitle() {
 	if (GunSubType == EGunSubType::CombatRifle) {
 		if (Magazine->PartNum == 2) {
 			title = new CRTitlePounder();
+			PriFireAudio = GetAudio("guns/rifle_cr_pounder.mp3");
 		}
 		else if (Accuracy >= 93.0) {
 			title = new CRTitleCobra();
+			PriFireAudio = GetAudio("guns/rifle_cr_cobra.mp3");
 		}
 		else if (AttrBonuses[EAttributeType::Damage].Scale > 0.45) {
 			title = new CRTitleStomper();
+			PriFireAudio = GetAudio("guns/rifle_cr_stomper.mp3");
 		}
 		else {
 			title = new CRTitleDefault();
+			PriFireAudio = GetAudio("guns/rifle_cr_def.mp3");
 		}
 	}
 	else {
 		if (FireTime <= 100) {
 			title = new MGTitleHavoc();
+			PriFireAudio = GetAudio("guns/rifle_mg_havoc.mp3");
 		}
 		else if (Accuracy >= 91.3) {
 			title = new MGTitleMassacre();
+			PriFireAudio = GetAudio("guns/rifle_mg_massacre.mp3");
 		}
 		else if (AttrBonuses[EAttributeType::Damage].Scale > 0.8) {
 			title = new MGTitleMauler();
+			PriFireAudio = GetAudio("guns/rifle_mg_mauler.mp3");
 		}
 		else {
 			title = new MGTitleDefault();
+			PriFireAudio = GetAudio("guns/rifle_mg_def.mp3");
 		}
 	}
 
