@@ -50,6 +50,12 @@ class AccessoryComponent : public GunPart {
 	
 };
 
+class ElementComponent : public GunPart {
+public:
+	EElement Element { EElement::None };
+	bool BL1Style { false };
+};
+
 class PrefixComponent : public GunPart {
 
 };

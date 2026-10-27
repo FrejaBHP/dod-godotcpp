@@ -32,13 +32,18 @@ public:
 
 	virtual void BuildGun(std::shared_ptr<GunDefinition> gundef);
 
+	bool IsReadyToFire(steady_clock::time_point now) const;
 	bool TryPrimaryFire(const Vector2 from, const Vector2 towards);
 	bool TryReload();
+	void FreeGun();
+
+	steady_clock::time_point GetLastFired() const;
 
 	// Burde måske være en shared ptr
 	std::shared_ptr<GunDefinition> GunDef = nullptr;
 
 	Character* OwningCharacter = nullptr;
+	int* OwnerReserveAmmo = nullptr;
 	Timer* ReloadTimer = nullptr;
 	AudioStreamPlayer2D* StreamPlayer = nullptr;
 	Ref<AudioStreamRandomizer> StreamRandomiser;
@@ -58,6 +63,8 @@ protected:
 	Ref<PackedScene> ProjectileScene = nullptr;
 	bool IsFiringBurst = false;
 	int32_t RemainingBurstCount = 0;
+
+	bool MarkedForDeletion = false;
 
 private:
 

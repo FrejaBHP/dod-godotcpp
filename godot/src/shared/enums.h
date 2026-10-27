@@ -7,6 +7,13 @@ enum class EAlignment {
 	Enemies
 };
 
+enum class EHealthType {
+	Neutral,
+	Flesh,
+	Shield,
+	Armour,
+	Energy
+};
 
 enum class EAttributeType {
 	Damage,
@@ -45,7 +52,23 @@ enum class EElement {
 	Fire,
 	Shock,
 	Corrosive,
-	Cryo
+	Cryo,
+	Explosive,
+	COUNT
+};
+
+enum class EElementCompType {
+	None,
+	Cryo,
+	ExplosiveNormal,
+	ExplosiveBlast,
+	IncendiaryDoT,
+	IncendiaryBlast,
+	ShockDoT,
+	ShockBlast,
+	CorrosiveDoT,
+	CorrosiveBlast,
+	COUNT
 };
 
 enum class EManufacturer {
@@ -91,6 +114,10 @@ enum class EGunSubType {
 	// Snipers
 	SniperSemiAuto,
 	SniperBoltAction,
+
+	// For parity and ease of use
+	SMG,
+	Launcher,
 };
 
 enum class EGunRarity {
@@ -101,4 +128,32 @@ enum class EGunRarity {
 	Epic,
 	SemiLegendary,
 	Legendary
+};
+
+enum class EAmmoType {
+	Pistol,
+	Revolver,
+	SMG,
+	Rifle,
+	Shotgun,
+	Sniper,
+	Launcher,
+	NONE
+};
+
+
+enum class EAIState {
+	NONE, // Do nothing
+	Idle, // Do not a lot
+	Search, // Don't know where the player is - search for them
+	Chase, // Know where the player is - find them and attack them
+	Hold, // Attack from position, unmoving
+	Flee, // Unwilling to fight
+	Hide, // Vulnerable, like reloading. Will attack if able if exposed
+	Panic, // Special state. Low on health or other factor. Should make them run away or do something crazy
+
+	// Enemy goals. Probably not states, but a secret third thing
+	Strafe,
+	SeekCover,
+	Reload,
 };

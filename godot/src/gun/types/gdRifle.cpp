@@ -3,6 +3,7 @@
 
 GDRifle::GDRifle() {
 	GunType = EGunType::Rifle;
+	GunAmmoType = EAmmoType::Rifle;
 }
 
 void GDRifle::AssembleRandomGun() {

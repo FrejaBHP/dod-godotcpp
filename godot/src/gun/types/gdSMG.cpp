@@ -3,7 +3,8 @@
 
 GDSMG::GDSMG() {
 	GunType = EGunType::SMG;
-	GunSubType = EGunSubType::None;
+	GunAmmoType = EAmmoType::SMG;
+	GunSubType = EGunSubType::SMG;
 	FireMode = EFireMode::Automatic;
 	DamageModifier = 0.8;
 

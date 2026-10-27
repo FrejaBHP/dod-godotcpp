@@ -3,7 +3,7 @@
 #include <memory>
 #include "gun/gunpart.h"
 
-std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer);
+std::unique_ptr<MaterialComponent> GetMaterial(EManufacturer manufacturer, int index);
 
 class MatPrometheus1 : public MaterialComponent {
 public:

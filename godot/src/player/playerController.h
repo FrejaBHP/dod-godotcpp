@@ -1,14 +1,15 @@
 #pragma once
 
 #include "characterController.h"
+#include "ui/crosshair.h"
 
 #include <godot_cpp/classes/node2d.hpp>
 #include <godot_cpp/classes/area2d.hpp>
+#include <godot_cpp/classes/sprite2d.hpp>
 #include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/label.hpp>
 #include <godot_cpp/classes/camera2d.hpp>
 #include <godot_cpp/classes/input_event.hpp>
-#include <godot_cpp/classes/texture_progress_bar.hpp>
 
 using namespace godot;
 
@@ -34,18 +35,54 @@ public:
 	void SetPlayer(Player* player);
 	Player* GetPlayer() const;
 
+	void OnHitByProjectile(Projectile* proj) override;
+	void TakeDamage(DamageInfo& di) override;
+
 	Node2D* GetCrosshair() const;
 
+	void UpdateGunHeldType(const Gun& heldGun);
+
+	void GetStartGun(); // Only use this for starting pistol for a new character
+	// Sets the current gun in Controller. Is also responsible for calls to update HUD with the new gun.
 	void SetCurrentGunSlot(int32_t slot);
 	int32_t GetCurrentGunSlot() const;
 	void UpdateAmmoLabel();
-	
+
+	void GiveExperience(double exp);
+	double GetExperience() const;
 
 protected:
+	Player* ControlledPlayer { nullptr };
+	Sprite2D* GunSprite { nullptr };
+	Crosshair* PlayerCrosshair { nullptr };
+	Label* DebugLabel { nullptr };
+	Camera2D* PlayerCamera { nullptr };
+	Area2D* PickupRadius { nullptr };
+	Area2D* GunPickupRadius { nullptr };
+	Timer* GunPickupTimer { nullptr };
+	HUD* PlayerHUD { nullptr };
+	Timer* InaccuracyTimer { nullptr };
+	TextureProgressBar* ReloadBar { nullptr };
+
+	std::vector<GunDropped*> DroppedGunsInRadius;
+	GunDropped* DroppedGunInFocus { nullptr };
+
+	bool isLMBHeld = false;
+	bool isRMBHeld = false;
+
+	double CurReloadTime = 0.0;
+
+	int32_t NumEquippedGuns { 0 };
+	int32_t CurrentGunSlot { 0 };
+
 	static void _bind_methods();
 
 	void PickupAreaEntered(Area2D* area);
 	void PickupAreaExited(Area2D* area);
+
+	void DroppedGunAreaEntered(Area2D* area);
+	void DroppedGunAreaExited(Area2D* area);
+
 	void PickupTimerTimeout();
 	void ScanForGuns();
 	GunDropped* GetClosestGunDropped();
@@ -55,6 +92,7 @@ protected:
 	void SwapGunOnGround();
 
 	void SwitchGun(int32_t slot);
+	// Sets up gun that is switched to
 	void ApplyCurrentGun();
 
 	void GunReloadStart() override;
@@ -68,26 +106,7 @@ protected:
 	void BindGun(Gun* gun);
 	void UnbindGun(Gun* gun);
 
-	Player* ControlledPlayer = nullptr;
-	Node2D* PlayerCrosshair = nullptr;
-	Label* DebugLabel = nullptr;
-	Camera2D* PlayerCamera = nullptr;
-	Area2D* PickupRadius = nullptr;
-	Timer* PickupTimer = nullptr;
-	HUD* PlayerHUD = nullptr;
-	Timer* InaccuracyTimer = nullptr;
-	TextureProgressBar* ReloadBar = nullptr;
-
-	std::vector<GunDropped*> DroppedGunsInRadius;
-	GunDropped* DroppedGunInFocus = nullptr;
-
-	bool isLMBHeld = false;
-	bool isRMBHeld = false;
-
-	double CurReloadTime = 0.0;
-
-	int32_t NumEquippedGuns { 0 };
-	int32_t CurrentGunSlot { 0 };
+	void LevelUp();
 
 private:
 

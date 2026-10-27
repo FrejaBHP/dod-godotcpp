@@ -3,51 +3,75 @@
 
 GDPistol::GDPistol() {
 	GunType = EGunType::Pistol;
+	GunAmmoType = EAmmoType::Pistol;
+}
+
+void GDPistol::SetRepeaterBaseStats() {
+	GunSubType = EGunSubType::Repeater;
+	FireMode = EFireMode::Semi;
+	DamageModifier = 1.0;
+
+	BaseFireTime = 300;
+	BaseMagSize = 12;
+	BaseReloadTime = 2.0;
+
+	BaseSpread = 2.0;
+	BaseRecoil = 2.0;
+	BaseMinInaccuracy = 1.5;
+	BaseMaxInaccuracy = 8;
+	BaseInaccuracyRegen = 12;
+}
+
+void GDPistol::SetMPBaseStats() {
+	GunSubType = EGunSubType::MachinePistol;
+	FireMode = EFireMode::Automatic;
+	DamageModifier = 0.9;
+
+	BaseFireTime = 120;
+	BaseMagSize = 16;
+	BaseReloadTime = 2.25;
+
+	BaseSpread = 2.0;
+	BaseRecoil = 1.5;
+	BaseMinInaccuracy = 2;
+	BaseMaxInaccuracy = 12;
+	BaseInaccuracyRegen = 8;
 }
 
 void GDPistol::AssembleRandomGun() {
-	Body = GetRandomPistolBody();
+	Body = GetPistolBody(-1);
 
 	if (Body->PartNum == 5) {
-		GunSubType = EGunSubType::MachinePistol;
-		FireMode = EFireMode::Automatic;
-		DamageModifier = 0.9;
+		SetMPBaseStats();
 
-		BaseFireTime = 120;
-		BaseMagSize = 16;
-		BaseReloadTime = 2.25;
-
-		BaseSpread = 2.0;
-		BaseRecoil = 1.5;
-		BaseMinInaccuracy = 2;
-		BaseMaxInaccuracy = 12;
-		BaseInaccuracyRegen = 8;
-
-		Magazine = GetRandomMPMag();
-		Accessory = GetRandomMPAccessory();
+		Magazine = GetMPMag(-1);
+		Accessory = GetMPAccessory(-1);
 	}
 	else {
-		GunSubType = EGunSubType::Repeater;
-		FireMode = EFireMode::Semi;
-		DamageModifier = 1.0;
+		SetRepeaterBaseStats();
 
-		BaseFireTime = 300;
-		BaseMagSize = 12;
-		BaseReloadTime = 2.0;
-
-		BaseSpread = 2.0;
-		BaseRecoil = 2.0;
-		BaseMinInaccuracy = 1.5;
-		BaseMaxInaccuracy = 8;
-		BaseInaccuracyRegen = 12;
-
-		Magazine = GetRandomRepeaterMag();
-		Accessory = GetRandomRepeaterAccessory();
+		Magazine = GetRepeaterMag(-1);
+		Accessory = GetRepeaterAccessory(-1);
 	}
 
-	Barrel = GetRandomPistolBarrel();
-	Action = GetRandomPistolAction();
+	Barrel = GetPistolBarrel(-1);
+	Action = GetPistolAction(-1);
 	
+	ApplyPartsBonuses();
+
+	Prefix = GetEligiblePrefix();
+	Title = GetEligibleTitle();
+}
+
+void GDPistol::AssembleStarterPistol() {
+	SetRepeaterBaseStats();
+
+	Body = GetPistolBody(0);
+	Magazine = GetRepeaterMag(0);
+	Accessory = GetRepeaterAccessory(0);
+	Barrel = GetPistolBarrel(0);
+	Action = GetPistolAction(0);
+
 	ApplyPartsBonuses();
 
 	Prefix = GetEligiblePrefix();

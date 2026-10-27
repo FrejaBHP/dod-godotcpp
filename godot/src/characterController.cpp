@@ -10,6 +10,19 @@ void CharacterController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("ReloadEnd"), &CharacterController::GunReloadEnd);
 }
 
+void CharacterController::OnHitByProjectile(Projectile* proj) {
+
+}
+
+// Health kan laves om til et component med sit eget system. Placeholder her
+void CharacterController::TakeDamage(DamageInfo& di) {
+
+}
+
+bool CharacterController::IsCharacterReloading() const {
+	return IsReloading;
+}
+
 void CharacterController::OnGunFired() {
 	ApplyRecoil();
 }

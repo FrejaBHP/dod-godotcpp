@@ -28,6 +28,7 @@ public:
 	EManufacturer Manufacturer { EManufacturer::Placeholder };
 	EGunType GunType { EGunType::None };
 	EGunSubType GunSubType { EGunSubType::None };
+	EAmmoType GunAmmoType { EAmmoType::Pistol };
 	EGunRarity GunRarity { EGunRarity::Common };
 	EFireMode FireMode { EFireMode::Automatic };
 
@@ -81,6 +82,7 @@ public:
 	std::unique_ptr<MagazineComponent> Magazine;
 	std::unique_ptr<StockComponent> Stock;
 	std::unique_ptr<AccessoryComponent> Accessory;
+	std::unique_ptr<ElementComponent> Element;
 	std::unique_ptr<PrefixComponent> Prefix;
 	std::unique_ptr<TitleComponent> Title;
 

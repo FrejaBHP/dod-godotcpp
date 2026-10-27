@@ -37,7 +37,7 @@ void Projectile::BodyEntered(Node2D* body) {
 
 	if (body->is_in_group("Character")) {
 		Character* ch = static_cast<Character*>(body);
-		ch->OnHitByProjectile();
+		ch->HitWithProjectile(this);
 	}
 
 	Remove();

@@ -2,6 +2,7 @@
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_map.hpp>
 #include <godot_cpp/classes/viewport.hpp>
+#include <godot_cpp/classes/atlas_texture.hpp>
 
 // temp
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -18,12 +19,24 @@
 #include "gun/gunDropped.h"
 #include "shared/utility.h"
 #include "ui/hud.h"
+#include "pickup/pickupAmmo.h"
 
 using namespace godot;
 using namespace std::chrono;
 
+constexpr int MaxLevel = 20;
+
+constexpr int GunSpriteAtlasStepX { 8 };
+constexpr int GunSpriteAtlasStepY { 24 };
+
+constexpr double ExperienceThresholds[] {
+	0, 100, 225, 375, 550, 750, 975, 1225, 1500, 1800, 2125,
+	2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000
+};
+
 void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("ProcessMovementInput"), &PlayerController::ProcessMovementInput);
+	ClassDB::bind_method(D_METHOD("OnHitByProjectile"), &PlayerController::OnHitByProjectile);
 	ClassDB::bind_method(D_METHOD("SetPlayer"), &PlayerController::SetPlayer);
 	ClassDB::bind_method(D_METHOD("GetPlayer"), &PlayerController::GetPlayer);
 	ClassDB::bind_method(D_METHOD("GetCrosshair"), &PlayerController::GetCrosshair);
@@ -32,6 +45,8 @@ void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("UpdateAmmoLabel"), &PlayerController::UpdateAmmoLabel);
 	ClassDB::bind_method(D_METHOD("PickupAreaEntered"), &PlayerController::PickupAreaEntered);
 	ClassDB::bind_method(D_METHOD("PickupAreaExited"), &PlayerController::PickupAreaExited);
+	ClassDB::bind_method(D_METHOD("DroppedGunAreaEntered"), &PlayerController::DroppedGunAreaEntered);
+	ClassDB::bind_method(D_METHOD("DroppedGunAreaExited"), &PlayerController::DroppedGunAreaExited);
 	ClassDB::bind_method(D_METHOD("Interact"), &PlayerController::Interact);
 	ClassDB::bind_method(D_METHOD("SwapGunOnGround"), &PlayerController::SwapGunOnGround);
 	ClassDB::bind_method(D_METHOD("PickupTimerTimeout"), &PlayerController::PickupTimerTimeout);
@@ -108,6 +123,8 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 					print_line((int32_t)gun->GunDef.use_count());
 				}
 			}
+
+			print_orphan_nodes();
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug2")) {
@@ -118,7 +135,7 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug3")) {
-			GameInstance::GetInstance().TestSpawnEnemy();
+			GameInstance::GetInstance().TestSpawnWave(1);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug4")) {
@@ -152,6 +169,9 @@ void PlayerController::_process(double delta) {
 	if (PlayerCrosshair) {
 		Vector2 chPosition = mousePosition - screenCentre;
 		PlayerCrosshair->set_position(chPosition);
+		PlayerCrosshair->UpdateCrosshairSpreadTarget(ControlledPlayer->Inaccuracy + ControlledPlayer->GetCurrentGun()->GunDef->Spread);
+		//ControlledPlayer->look_at(PlayerCrosshair->get_global_position());
+		//PlayerCrosshair->set_global_rotation(0.f);
 	}
 }
 
@@ -159,6 +179,10 @@ void PlayerController::_physics_process(double delta) {
 	if (ControlledPlayer) {
 		Vector2 movement = ProcessMovementInput();
 		ControlledPlayer->ApplyMovement(movement);
+
+		if (PlayerCrosshair) {
+			ControlledPlayer->look_at(PlayerCrosshair->get_global_position());
+		}
 
 		if (isLMBHeld) {
 			Gun* currentGun = ControlledPlayer->GetCurrentGun();
@@ -181,6 +205,15 @@ void PlayerController::_physics_process(double delta) {
 Vector2 PlayerController::ProcessMovementInput() {
 	Vector2 movementInput = Input::get_singleton()->get_vector("move_left", "move_right", "move_up", "move_down");
 	return movementInput;
+}
+
+void PlayerController::OnHitByProjectile(Projectile* proj) {
+
+}
+
+// Health kan laves om til et component med sit eget system. Placeholder her
+void PlayerController::TakeDamage(DamageInfo& di) {
+
 }
 
 void PlayerController::SwitchGun(int32_t slot) {
@@ -217,14 +250,20 @@ void PlayerController::SetPlayer(Player* player) {
 	HUD* hud = player->get_node<HUD>("CanvasLayer/PlayerHUD");
 	if (hud) {
 		PlayerHUD = hud;
+		PlayerHUD->UpdateLevel(ControlledPlayer->Level);
 	}
 
-	Node2D* crosshair = player->get_node<Node2D>("Crosshair");
+	Crosshair* crosshair = player->get_node<Crosshair>("VisualNodes/Crosshair");
 	if (crosshair) {
 		PlayerCrosshair = crosshair;
 	}
 
-	Label* label = player->get_node<Label>("Label");
+	Sprite2D* gunSprite = player->get_node<Sprite2D>("GunSprite");
+	if (gunSprite) {
+		GunSprite = gunSprite;
+	}
+
+	Label* label = player->get_node<Label>("VisualNodes/Label");
 	if (label) {
 		DebugLabel = label;
 	}
@@ -238,18 +277,26 @@ void PlayerController::SetPlayer(Player* player) {
 	if (pickupRadius) {
 		PickupRadius = pickupRadius;
 
-		// Note to self: Du kan spare 2 timer i fremtiden ved ikke at sætte CALLABLE_DEFERRED og skabe interne race conditions
 		PickupRadius->connect("area_entered", callable_mp(this, &PlayerController::PickupAreaEntered));
 		PickupRadius->connect("area_exited", callable_mp(this, &PlayerController::PickupAreaExited));
 	}
 
-	Timer* pickupTimer = player->get_node<Timer>("PickupTimer");
-	if (pickupTimer) {
-		PickupTimer = pickupTimer;
+	Area2D* gunPickupRadius = player->get_node<Area2D>("GunPickupRadius");
+	if (gunPickupRadius) {
+		GunPickupRadius = gunPickupRadius;
 
-		PickupTimer->connect("timeout", callable_mp(this, &PlayerController::PickupTimerTimeout));
-		PickupTimer->set_wait_time(0.125);
-		PickupTimer->start();
+		// Note to self: Du kan spare 2 timer i fremtiden ved ikke at sætte CALLABLE_DEFERRED og skabe interne race conditions
+		GunPickupRadius->connect("area_entered", callable_mp(this, &PlayerController::DroppedGunAreaEntered));
+		GunPickupRadius->connect("area_exited", callable_mp(this, &PlayerController::DroppedGunAreaExited));
+	}
+
+	Timer* gunPickupTimer = player->get_node<Timer>("GunPickupTimer");
+	if (gunPickupTimer) {
+		GunPickupTimer = gunPickupTimer;
+
+		GunPickupTimer->connect("timeout", callable_mp(this, &PlayerController::PickupTimerTimeout));
+		GunPickupTimer->set_wait_time(0.125);
+		GunPickupTimer->start();
 	}
 
 	Timer* inaccTimer = player->get_node<Timer>("InaccuracyTimer");
@@ -259,10 +306,12 @@ void PlayerController::SetPlayer(Player* player) {
 		InaccuracyTimer->connect("timeout", callable_mp(this, &PlayerController::EnableInaccuracyRecovery));
 	}
 
-	TextureProgressBar* reloadBar = player->get_node<TextureProgressBar>("ReloadBar");
+	TextureProgressBar* reloadBar = player->get_node<TextureProgressBar>("VisualNodes/ReloadBar");
 	if (reloadBar) {
 		ReloadBar = reloadBar;
 	}
+
+	player->connect("inc_hit_projectile", callable_mp(this, &PlayerController::OnHitByProjectile));
 
 	GameInstance::GetInstance().RegisterPlayer(ControlledPlayer);
 }
@@ -279,10 +328,20 @@ void PlayerController::SetCurrentGunSlot(int32_t slot) {
 	CurrentGunSlot = slot;
 	ApplyCurrentGun();
 	UpdateAmmoLabel();
+	PlayerHUD->SetHighlightedWeaponSlot(slot);
 }
 
 int32_t PlayerController::GetCurrentGunSlot() const {
 	return CurrentGunSlot;
+}
+
+void PlayerController::GetStartGun() {
+	Gun* newGun = GameInstance::GetInstance().GenerateStarterPistol();
+	BindGun(newGun);
+	NumEquippedGuns++;
+
+	ControlledPlayer->SetGunInSlot(0, newGun);
+	ControlledPlayer->SwitchToGunInSlot(0);
 }
 
 void PlayerController::PickUpGunInSlot(int32_t slot) {
@@ -299,8 +358,6 @@ void PlayerController::PickUpGunInSlot(int32_t slot) {
 
 	if (slot == GetCurrentGunSlot()) {
 		ControlledPlayer->SwitchToGunInSlot(GetCurrentGunSlot());
-
-		UpdateAmmoLabel();
 	}
 }
 
@@ -328,19 +385,53 @@ void PlayerController::SwapGunOnGround() {
 
 	// Drop gun and clean up gun instance
 	GameInstance::GetInstance().CopyEquippedGunToDrop(oldGun, GetPlayer()->get_global_position());
-	oldGun->queue_free();
-
-	UpdateAmmoLabel();
+	//oldGun->queue_free();
+	oldGun->FreeGun();
 }
 
 void PlayerController::BindGun(Gun* gun) {
 	gun->connect("gun_fired", callable_mp(this, &PlayerController::OnGunFired));
 	gun->connect("gun_reload_ended", callable_mp(this, &PlayerController::GunReloadEnd));
+
+	switch (gun->GunDef->GunAmmoType) {
+		case EAmmoType::Pistol:
+			gun->OwnerReserveAmmo = &ControlledPlayer->PistolAmmo;
+			break;
+
+		case EAmmoType::Revolver:
+			gun->OwnerReserveAmmo = &ControlledPlayer->RevolverAmmo;
+			break;
+
+		case EAmmoType::SMG:
+			gun->OwnerReserveAmmo = &ControlledPlayer->SMGAmmo;
+			break;
+
+		case EAmmoType::Rifle:
+			gun->OwnerReserveAmmo = &ControlledPlayer->ARAmmo;
+			break;
+
+		case EAmmoType::Shotgun:
+			gun->OwnerReserveAmmo = &ControlledPlayer->ShotgunAmmo;
+			break;
+
+		case EAmmoType::Sniper:
+			gun->OwnerReserveAmmo = &ControlledPlayer->SniperAmmo;
+			break;
+
+		case EAmmoType::Launcher:
+			gun->OwnerReserveAmmo = &ControlledPlayer->LauncherAmmo;
+			break;
+
+		default:
+			gun->OwnerReserveAmmo = &ControlledPlayer->PistolAmmo;
+			break;
+	}
 }
 
 void PlayerController::UnbindGun(Gun* gun) {
 	gun->disconnect("gun_fired", callable_mp(this, &PlayerController::OnGunFired));
 	gun->disconnect("gun_reload_ended", callable_mp(this, &PlayerController::GunReloadEnd));
+	gun->OwnerReserveAmmo = nullptr;
 }
 
 void PlayerController::ApplyCurrentGun() {
@@ -353,6 +444,16 @@ void PlayerController::ApplyCurrentGun() {
 	ControlledPlayer->InaccuracyRegenDelay = gun->GunDef->InaccuracyRegenDelay;
 	ControlledPlayer->Inaccuracy = ControlledPlayer->MinInaccuracy;
 	IsFullyAccurate = true;
+
+	if (ControlledPlayer->GetCurrentGun()) {
+		PlayerHUD->SetAmmoDisplayType(ControlledPlayer->GetCurrentGun()->GunDef->GunAmmoType);
+
+		if (ControlledPlayer->GetCurrentGun()->MagAmmo > *ControlledPlayer->GetCurrentGun()->OwnerReserveAmmo) {
+			ControlledPlayer->GetCurrentGun()->MagAmmo = *ControlledPlayer->GetCurrentGun()->OwnerReserveAmmo;
+		}
+	}
+
+	UpdateGunHeldType(*gun);
 }
 
 void PlayerController::GunReloadStart() {
@@ -400,21 +501,61 @@ void PlayerController::UpdateAmmoLabel() {
 		return;
 	}
 
-	int32_t ammo;
-	if (ControlledPlayer->GetCurrentGun()->GunDef->GunType == EGunType::Pistol) {
-		ammo = ControlledPlayer->PistolAmmo;
-	}
-	else if (ControlledPlayer->GetCurrentGun()->GunDef->GunType == EGunType::SMG) {
-		ammo = ControlledPlayer->SMGAmmo;
-	}
-	else {
-		ammo = ControlledPlayer->ARAmmo;
-	}
-
-	PlayerHUD->SetAmmoDisplayValues(ControlledPlayer->GetCurrentGun()->MagAmmo, ammo);
+	PlayerHUD->SetAmmoDisplayValues(ControlledPlayer->GetCurrentGun()->MagAmmo, ControlledPlayer->GetCurrentGun()->GunDef->MagSize, *ControlledPlayer->GetCurrentGun()->OwnerReserveAmmo);
 }
 
 void PlayerController::PickupAreaEntered(Area2D* area) {
+	if (area->is_in_group("AmmoPickup")) {
+		AmmoPickup* ammo = static_cast<AmmoPickup*>(area);
+
+		// gross, fix later when ammo is redone
+		switch ((EAmmoType)ammo->GetAmmoType()) {
+			case EAmmoType::Pistol:
+				ControlledPlayer->PistolAmmo += ammo->GetAmmoCount();
+				break;
+
+			case EAmmoType::Revolver:
+				ControlledPlayer->RevolverAmmo += ammo->GetAmmoCount();
+				break;
+
+			case EAmmoType::SMG:
+				ControlledPlayer->SMGAmmo += ammo->GetAmmoCount();
+				break;
+
+			case EAmmoType::Rifle:
+				ControlledPlayer->ARAmmo += ammo->GetAmmoCount();
+				break;
+
+			case EAmmoType::Shotgun:
+				ControlledPlayer->ShotgunAmmo += ammo->GetAmmoCount();
+				break;
+
+			case EAmmoType::Sniper:
+				ControlledPlayer->SniperAmmo += ammo->GetAmmoCount();
+				break;
+
+			case EAmmoType::Launcher:
+				ControlledPlayer->LauncherAmmo += ammo->GetAmmoCount();
+				break;
+
+			default:
+				break;
+		}
+
+		print_line(vformat("Picked up %d %s ammo!", ammo->GetAmmoCount(), GetAmmoTypeName((EAmmoType)ammo->GetAmmoType()).c_str()));
+
+		//ammo->Disable();
+		ammo->queue_free();
+
+		UpdateAmmoLabel();
+	}
+}
+
+void PlayerController::PickupAreaExited(Area2D* area) {
+	
+}
+
+void PlayerController::DroppedGunAreaEntered(Area2D* area) {
 	Node* parent = area->get_parent();
 
 	if (parent && parent->is_in_group("GunDropped")) {
@@ -425,7 +566,7 @@ void PlayerController::PickupAreaEntered(Area2D* area) {
 	}
 }
 
-void PlayerController::PickupAreaExited(Area2D* area) {
+void PlayerController::DroppedGunAreaExited(Area2D* area) {
 	Node* parent = area->get_parent();
 
 	if (parent && parent->is_in_group("GunDropped")) {
@@ -494,4 +635,79 @@ GunDropped* PlayerController::GetClosestGunDropped() {
 	}
 
 	return DroppedGunsInRadius[shortestIndex];
+}
+
+void PlayerController::GiveExperience(double exp) {
+	if (!ControlledPlayer) {
+		print_error("No attached player");
+		return;
+	}
+
+	ControlledPlayer->Experience += exp;
+
+	if (ControlledPlayer->Level < MaxLevel) {
+		if (ControlledPlayer->Experience >= ExperienceThresholds[ControlledPlayer->Level]) {
+			LevelUp();
+
+			while (true) {
+				if (ControlledPlayer->Experience >= ExperienceThresholds[ControlledPlayer->Level] && ControlledPlayer->Level < MaxLevel) {
+					LevelUp();
+				}
+				else {
+					break;
+				}
+			}
+
+			PlayerHUD->UpdateLevel(ControlledPlayer->Level);
+		}
+	}
+
+	PlayerHUD->UpdateEXP(ControlledPlayer->Experience, ExperienceThresholds[ControlledPlayer->Level - 1], ExperienceThresholds[ControlledPlayer->Level]);
+}
+
+double PlayerController::GetExperience() const {
+	if (ControlledPlayer) {
+		return ControlledPlayer->Experience;
+	}
+
+	return 0.0;
+}
+
+void PlayerController::LevelUp() {
+	if (ControlledPlayer) {
+		ControlledPlayer->Level++;
+	}
+}
+
+void PlayerController::UpdateGunHeldType(const Gun& heldGun) {
+	if (!GunSprite) {
+		print_error("No gun sprite, aborting changing the atlas sheet");
+		return;
+	}
+
+	Rect2 region { Point2(0, 0), Size2(GunSpriteAtlasStepX, GunSpriteAtlasStepY) };
+	EGunSubType type = heldGun.GunDef->GunSubType;
+
+	switch (type) {
+		case EGunSubType::Repeater:
+		case EGunSubType::MachinePistol:
+			region.set_position(Vector2(0, 0));
+			break;
+
+		case EGunSubType::SMG:
+			region.set_position(Vector2(GunSpriteAtlasStepX, 0));
+			break;
+
+		case EGunSubType::CombatRifle:
+		case EGunSubType::MachineGun:
+			region.set_position(Vector2(GunSpriteAtlasStepX * 2, 0));
+			break;
+
+		default:
+			region.set_position(Vector2(0, 0));
+			break;
+	}
+
+	AtlasTexture* atlas = static_cast<AtlasTexture*>(GunSprite->get_texture().ptr());
+	atlas->set_region(region);
 }

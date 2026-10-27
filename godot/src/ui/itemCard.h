@@ -24,21 +24,23 @@ protected:
 		Accuracy,
 		FireRate,
 		Reload,
-		Magazine
+		Magazine,
+		Element,
+		ElementChance,
+		ElementDamage
 	};
-
-	static void _bind_methods();
-
-	HBoxContainer* GetRowByName(ECardRow row);
-	Label* GetRowValueLabel(size_t index);
-	Label* GetRowValueLabelByName(ECardRow row);
-
-	static const int32_t NumRows { 5 };
 
 	Label* LName = nullptr;
 	Label* LGunType = nullptr;
 	Label* LManufacturer = nullptr;
-	HBoxContainer* CardRows[NumRows];
+	std::vector<HBoxContainer*> CardRows;
+
+	static void _bind_methods();
+
+	HBoxContainer* GetRowByName(ECardRow row);
+	Label* GetRowNameLabel(size_t index);
+	Label* GetRowValueLabel(size_t index);
+	Label* GetRowValueLabelByName(ECardRow row);
 
 private:
 

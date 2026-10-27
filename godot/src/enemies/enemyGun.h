@@ -13,17 +13,18 @@ class EnemyGun : public Character {
 	GDCLASS(EnemyGun, Character)
 
 public:
-	void _ready() override;
-	void _physics_process(double delta) override;
-
-	void OnHitByProjectile() override;
-	void Die() override;
-	void OnDeath() override;
-
 	EnemyController* Controller = nullptr;
 	Gun* CurrentGun = nullptr;
 
 	RayCast2D* PlayerCast = nullptr;
+
+	double EXPBounty { 25.0 };
+
+	void _ready() override;
+	void _physics_process(double delta) override;
+
+	void Die() override;
+	void OnDeath() override;
 
 protected:
 	static void _bind_methods();

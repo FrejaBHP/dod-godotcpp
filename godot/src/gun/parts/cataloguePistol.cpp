@@ -1,16 +1,24 @@
 #include "gun/parts/cataloguePistol.h"
 #include "shared/utility.h"
 
-constexpr int32_t NumBodies = 5;
-constexpr int32_t NumBarrels = 5;
-constexpr int32_t NumActions = 5;
-constexpr int32_t NumRepeaterMags = 3;
-constexpr int32_t NumMPMags = 2;
-constexpr int32_t NumRepeaterAccs = 4;
-constexpr int32_t NumMPAccs = 6;
+constexpr int NumBodies = 5;
+constexpr int NumBarrels = 5;
+constexpr int NumActions = 5;
+constexpr int NumRepeaterMags = 3;
+constexpr int NumMPMags = 2;
+constexpr int NumRepeaterAccs = 4;
+constexpr int NumMPAccs = 6;
 
-std::unique_ptr<BodyComponent> GetRandomPistolBody() {
-	int32_t bodyIndex = GetRandomInt(0, NumBodies - 1);
+std::unique_ptr<BodyComponent> GetPistolBody(int index) {
+	int bodyIndex;
+
+	if (index == -1) {
+		bodyIndex = GetRandomInt(1, NumBodies);
+	}
+	else {
+		bodyIndex = index;
+	}
+
 	BodyComponent* body;
 
 	switch (bodyIndex) {
@@ -30,19 +38,31 @@ std::unique_ptr<BodyComponent> GetRandomPistolBody() {
 			body = new PistolBody4();
 			break;
 
-		default:
+		case 5:
 			body = new PistolBody5MP();
+			break;
+
+		default:
+			body = new PistolBody1();
 			break;
 	}
 
 	return std::unique_ptr<BodyComponent>(body);
 }
 
-std::unique_ptr<BarrelComponent> GetRandomPistolBarrel() {
-	int32_t index = GetRandomInt(0, NumBarrels - 1);
+std::unique_ptr<BarrelComponent> GetPistolBarrel(int index) {
+	int barrelIndex;
+
+	if (index == -1) {
+		barrelIndex = GetRandomInt(1, NumBarrels);
+	}
+	else {
+		barrelIndex = index;
+	}
+	
 	BarrelComponent* barrel;
 
-	switch (index) {
+	switch (barrelIndex) {
 		case 1:
 			barrel = new PistolBarrel1();
 			break;
@@ -59,19 +79,31 @@ std::unique_ptr<BarrelComponent> GetRandomPistolBarrel() {
 			barrel = new PistolBarrel4();
 			break;
 
-		default:
+		case 5:
 			barrel = new PistolBarrel5();
+			break;
+
+		default:
+			barrel = new PistolBarrel1();
 			break;
 	}
 
 	return std::unique_ptr<BarrelComponent>(barrel);
 }
 
-std::unique_ptr<ActionComponent> GetRandomPistolAction() {
-	int32_t index = GetRandomInt(0, NumActions - 1);
+std::unique_ptr<ActionComponent> GetPistolAction(int index) {
+	int actionIndex;
+
+	if (index == -1) {
+		actionIndex = GetRandomInt(1, NumActions);
+	}
+	else {
+		actionIndex = index;
+	}
+
 	ActionComponent* action;
 
-	switch (index) {
+	switch (actionIndex) {
 		case 1:
 			action = new PistolAction1();
 			break;
@@ -88,19 +120,31 @@ std::unique_ptr<ActionComponent> GetRandomPistolAction() {
 			action = new PistolAction4();
 			break;
 
-		default:
+		case 5:
 			action = new PistolAction5();
+			break;
+
+		default:
+			action = new PistolAction1();
 			break;
 	}
 
 	return std::unique_ptr<ActionComponent>(action);
 }
 
-std::unique_ptr<MagazineComponent> GetRandomRepeaterMag() {
-	int32_t index = GetRandomInt(0, NumRepeaterMags - 1);
+std::unique_ptr<MagazineComponent> GetRepeaterMag(int index) {
+	int magIndex;
+
+	if (index == -1) {
+		magIndex = GetRandomInt(1, NumRepeaterMags);
+	}
+	else {
+		magIndex = index;
+	}
+
 	MagazineComponent* mag;
 
-	switch (index) {
+	switch (magIndex) {
 		case 1:
 			mag = new RepeaterMag1();
 			break;
@@ -109,36 +153,60 @@ std::unique_ptr<MagazineComponent> GetRandomRepeaterMag() {
 			mag = new RepeaterMag2();
 			break;
 
-		default:
+		case 3:
 			mag = new RepeaterMag3();
+			break;
+
+		default:
+			mag = new RepeaterMag1();
 			break;
 	}
 
 	return std::unique_ptr<MagazineComponent>(mag);
 }
 
-std::unique_ptr<MagazineComponent> GetRandomMPMag() {
-	int32_t index = GetRandomInt(0, NumMPMags - 1);
+std::unique_ptr<MagazineComponent> GetMPMag(int index) {
+	int magIndex;
+
+	if (index == -1) {
+		magIndex = GetRandomInt(1, NumMPMags);
+	}
+	else {
+		magIndex = index;
+	}
+
 	MagazineComponent* mag;
 
-	switch (index) {
+	switch (magIndex) {
 		case 1:
 			mag = new MPMag1();
 			break;
 
-		default:
+		case 2:
 			mag = new MPMag2();
+			break;
+
+		default:
+			mag = new MPMag1();
 			break;
 	}
 
 	return std::unique_ptr<MagazineComponent>(mag);
 }
 
-std::unique_ptr<AccessoryComponent> GetRandomRepeaterAccessory() {
-	int32_t index = GetRandomInt(0, NumRepeaterAccs - 1);
+std::unique_ptr<AccessoryComponent> GetRepeaterAccessory(int index) {
+	int accIndex;
+
+	if (index == -1) {
+		accIndex = GetRandomInt(0, NumRepeaterAccs - 1);
+	}
+	else {
+		accIndex = index;
+	}
+
 	AccessoryComponent* acc;
 
-	switch (index) {
+	switch (accIndex) {
 		case 1:
 			acc = new PistolAcc1Stabilised();
 			break;
@@ -159,11 +227,19 @@ std::unique_ptr<AccessoryComponent> GetRandomRepeaterAccessory() {
 	return std::unique_ptr<AccessoryComponent>(acc);
 }
 
-std::unique_ptr<AccessoryComponent> GetRandomMPAccessory() {
-	int32_t index = GetRandomInt(0, NumMPAccs - 1);
+std::unique_ptr<AccessoryComponent> GetMPAccessory(int index) {
+	int accIndex;
+
+	if (index == -1) {
+		accIndex = GetRandomInt(0, NumMPAccs - 1);
+	}
+	else {
+		accIndex = index;
+	}
+
 	AccessoryComponent* acc;
 
-	switch (index) {
+	switch (accIndex) {
 		case 1:
 			acc = new PistolAcc1Stabilised();
 			break;

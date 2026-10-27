@@ -3,6 +3,7 @@
 
 GDRevolver::GDRevolver() {
 	GunType = EGunType::Pistol;
+	GunAmmoType = EAmmoType::Revolver;
 	GunSubType = EGunSubType::Revolver;
 	FireMode = EFireMode::Semi;
 	DamageModifier = 2.4;
@@ -82,6 +83,8 @@ std::unique_ptr<TitleComponent> GDRevolver::GetEligibleTitle() {
 	else {
 		title = new RevolverTitleDefault();
 	}
+
+	PriFireAudio = GetAudio("guns/revolver_def.mp3");
 
 	return std::unique_ptr<TitleComponent>(title);
 }

@@ -5,13 +5,13 @@
 #include "gun/gunDefinition.h"
 #include "gun/types/gdPistol.h"
 
-std::unique_ptr<BodyComponent> GetRandomPistolBody();
-std::unique_ptr<BarrelComponent> GetRandomPistolBarrel();
-std::unique_ptr<MagazineComponent> GetRandomRepeaterMag();
-std::unique_ptr<MagazineComponent> GetRandomMPMag();
-std::unique_ptr<AccessoryComponent> GetRandomRepeaterAccessory();
-std::unique_ptr<AccessoryComponent> GetRandomMPAccessory();
-std::unique_ptr<ActionComponent> GetRandomPistolAction();
+std::unique_ptr<BodyComponent> GetPistolBody(int index);
+std::unique_ptr<BarrelComponent> GetPistolBarrel(int index);
+std::unique_ptr<MagazineComponent> GetRepeaterMag(int index);
+std::unique_ptr<MagazineComponent> GetMPMag(int index);
+std::unique_ptr<AccessoryComponent> GetRepeaterAccessory(int index);
+std::unique_ptr<AccessoryComponent> GetMPAccessory(int index);
+std::unique_ptr<ActionComponent> GetPistolAction(int index);
 
 class PistolBody1 : public BodyComponent {
 public:

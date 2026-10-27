@@ -10,6 +10,9 @@ class GDPistol : public GunDefinition {
 public:
 	GDPistol();
 	void AssembleRandomGun() override;
+	void AssembleStarterPistol();
+	void SetRepeaterBaseStats();
+	void SetMPBaseStats();
 	void ApplyPartsBonuses() override;
 	virtual std::string GetGunPartsString() override;
 

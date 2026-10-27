@@ -9,9 +9,10 @@
 #include "character.h"
 #include "player/playerController.h"
 #include "projectiles/projectile.h"
+#include "gameInstance.h"
+#include "world.h"
 #include "shared/utility.h"
 
-// FIXME: Lyd forsvinder, når Gun forsvinder. Udskyd gerne queue_free() indtil lyd er færdig med at spille
 
 void Gun::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("gun_fired"));
@@ -46,7 +47,7 @@ void Gun::_ready() {
 	// Audio
 	StreamPlayer = get_node<AudioStreamPlayer2D>("GunAudioStream");
 	StreamPlayer->set_max_polyphony(5);
-	StreamPlayer->connect("finished", callable_mp(this, &Gun::TestFunction));
+	//StreamPlayer->connect("finished", callable_mp(this, &Gun::TestFunction));
 
 	StreamRandomiser.instantiate();
 	StreamPlayer->set_stream(StreamRandomiser);
@@ -60,6 +61,14 @@ void Gun::_process(double delta) {
 }
 
 void Gun::_physics_process(double delta) {
+	if (MarkedForDeletion) {
+		if (!StreamPlayer->is_playing()) {
+			queue_free();
+		}
+
+		return;
+	}
+	
 	if (IsFiringBurst) {
 
 	}
@@ -70,19 +79,29 @@ void Gun::BuildGun(std::shared_ptr<GunDefinition> gundef) {
 	MagAmmo = GunDef->MagSize;
 }
 
+bool Gun::IsReadyToFire(steady_clock::time_point now) const {
+	long long difference = duration_cast<milliseconds>(now - LastFired).count();
+
+	if (difference > (GunDef->FireTime / OwningCharacter->FireRateMod)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 
 bool Gun::TryPrimaryFire(const Vector2 from, const Vector2 towards) {
 	if (MagAmmo < 1) {
 		return false;
 	}
 
-	steady_clock::time_point now = high_resolution_clock::now();
+	//steady_clock::time_point now = high_resolution_clock::now();
+	steady_clock::time_point now = steady_clock::now();
 
-	long long difference = duration_cast<milliseconds>(now - LastFired).count();
 
-	if (difference > GunDef->FireTime) {
-		PrimaryFireSingle(from, towards);
+	if (IsReadyToFire(now)) {
 		LastFired = now;
+		PrimaryFireSingle(from, towards);
 
 		/*
 		if (GunDef->FireMode != EFireMode::Burst) {
@@ -102,11 +121,13 @@ bool Gun::TryPrimaryFire(const Vector2 from, const Vector2 towards) {
 
 void Gun::PrimaryFireSingle(const Vector2 from, const Vector2 towards) {
 	if (ProjectileScene->can_instantiate()) {
-		Node2D* world = get_tree()->get_root()->get_node<Node2D>("World");
+		World* world = GameInstance::GetInstance().GetWorld();
 
 		if (world) {
 			for (size_t i = 0; i < GunDef->ProjectileCount; i++) {
 				Projectile* proj = static_cast<Projectile*>(ProjectileScene->instantiate());
+				// Only one until multiple sources exist
+				proj->DmgInfo.DamageInstances.push_back({ GunDef->Element->Element, GunDef->Damage });
 				proj->SetSpeed((float)GunDef->ProjectileSpeed);
 				world->add_child(proj);
 
@@ -123,9 +144,17 @@ void Gun::PrimaryFireSingle(const Vector2 from, const Vector2 towards) {
 			}
 
 			if (GunDef->ShotCost > MagAmmo) {
+				if (OwnerReserveAmmo) {
+					*OwnerReserveAmmo -= MagAmmo;
+				}
+				
 				MagAmmo = 0;
 			}
 			else {
+				if (OwnerReserveAmmo) {
+					*OwnerReserveAmmo -= GunDef->ShotCost;
+				}
+
 				MagAmmo -= GunDef->ShotCost;
 			}
 
@@ -138,7 +167,7 @@ void Gun::PrimaryFireSingle(const Vector2 from, const Vector2 towards) {
 // Ellers så lav en metode (gerne virtuel) i Character, hvor man kan få position og mål, og så kør logik i physics_process
 void Gun::PrimaryFireBurst(const Vector2 from, const Vector2 towards) {
 	if (ProjectileScene->can_instantiate()) {
-		Node2D* world = get_tree()->get_root()->get_node<Node2D>("World");
+		World* world = GameInstance::GetInstance().GetWorld();
 
 		if (world) {
 			for (size_t b = 0; b < GunDef->BurstCount; b++) {
@@ -148,6 +177,7 @@ void Gun::PrimaryFireBurst(const Vector2 from, const Vector2 towards) {
 
 				for (size_t i = 0; i < GunDef->ProjectileCount; i++) {
 					Projectile* proj = static_cast<Projectile*>(ProjectileScene->instantiate());
+					proj->Damage = GunDef->Damage;
 					proj->SetSpeed((float)GunDef->ProjectileSpeed);
 					world->add_child(proj);
 
@@ -181,24 +211,15 @@ void Gun::AdjustFiringAngle(Node2D* node) const {
 }
 
 bool Gun::TryReload() {
-	// Dirty hacky stuff
-	int32_t reserveAmmo;
-	if (GunDef->GunType == EGunType::Pistol) {
-		reserveAmmo = OwningCharacter->PistolAmmo;
-	}
-	else if (GunDef->GunType == EGunType::SMG) {
-		reserveAmmo = OwningCharacter->SMGAmmo;
-	}
-	else {
-		reserveAmmo = OwningCharacter->ARAmmo;
-	}
-
-
 	if (MagAmmo == GunDef->MagSize) {
 		return false;
 	}
 
-	if (reserveAmmo > 0 || reserveAmmo == -1) {
+	if (OwnerReserveAmmo && (*OwnerReserveAmmo > 0 || *OwnerReserveAmmo == -1) && *OwnerReserveAmmo > MagAmmo) {
+		StartReload();
+		return true;
+	}
+	else if (!OwnerReserveAmmo) { // Special case for NPCs, as they don't use from their ammo pool. Temporary
 		StartReload();
 		return true;
 	}
@@ -216,34 +237,39 @@ void Gun::ReloadTimerTimeout() {
 }
 
 void Gun::FinishReload() {
-	// Dirty hacky stuff
-	int32_t* reserveAmmo;
+	if (OwnerReserveAmmo) {
+		// When there is enough ammo for a full reload
+		if (*OwnerReserveAmmo >= GunDef->MagSize) {
+			int32_t prevAmmo = MagAmmo;
 
-	if (GunDef->GunType == EGunType::Pistol) {
-		reserveAmmo = &OwningCharacter->PistolAmmo;
-	}
-	else if (GunDef->GunType == EGunType::SMG) {
-		reserveAmmo = &OwningCharacter->SMGAmmo;
+			MagAmmo = GunDef->MagSize;
+			//*reserveAmmo -= (GunDef->MagSize - prevAmmo);
+		}
+		// When there is less than a magazine left of reserve ammo
+		else if (*OwnerReserveAmmo > 0) {
+			MagAmmo = *OwnerReserveAmmo;
+			//*reserveAmmo = 0;
+		}
+		else if (*OwnerReserveAmmo == -1) {
+			MagAmmo = GunDef->MagSize;
+		}
 	}
 	else {
-		reserveAmmo = &OwningCharacter->ARAmmo;
-	}
-
-	// When there is enough ammo for a full reload
-	if (*reserveAmmo >= GunDef->MagSize) {
-		int32_t prevAmmo = MagAmmo;
-
-		MagAmmo = GunDef->MagSize;
-		*reserveAmmo -= (GunDef->MagSize - prevAmmo);
-	}
-	// When there is less than a magazine left of reserve ammo
-	else if (*reserveAmmo > 0) {
-		MagAmmo = *reserveAmmo;
-		*reserveAmmo = 0;
-	}
-	else if (*reserveAmmo == -1) {
 		MagAmmo = GunDef->MagSize;
 	}
 
 	emit_signal("gun_reload_ended");
+}
+
+steady_clock::time_point Gun::GetLastFired() const {
+	return LastFired;
+}
+
+// Queues the Gun object for freeing when ready. This includes when sounds are no longer playing
+void Gun::FreeGun() {
+	if (get_parent()) {
+		//get_parent()->remove_child(this);
+		reparent(GameInstance::GetInstance().GetWorld(), false);
+	}
+	MarkedForDeletion = true;
 }

@@ -13,6 +13,7 @@ using namespace godot;
 class World;
 class Player;
 class Gun;
+class EnemyGun;
 
 // https://stackoverflow.com/questions/1008019/how-do-you-implement-the-singleton-design-pattern
 
@@ -31,6 +32,7 @@ public:
 	void RegisterWorld(World* world);
 	void RegisterPlayer(Player* player);
 	Gun* GenerateNakedGun(int32_t type);
+	Gun* GenerateStarterPistol();
 	void CopyEquippedGunToDrop(Gun* gun, Vector2 position);
 	Gun* CopyDroppedGunToEquip(GunDropped* dgun);
 
@@ -38,9 +40,15 @@ public:
 	void GenerateAndDropGun(int32_t type);
 
 	void TestSpawnEnemy();
+	void TestSpawnWave(int num);
 
 	void ShowCursor();
 	void HideCursor();
+
+	void SpawnDamageText(Vector2 position, double damage, EElement element);
+
+	void EnemyDeath(EnemyGun* enemy);
+	void SpawnRandomAmmoPickup(Vector2 position);
 
 	World* GetWorld();
 	Player* GetPlayer();

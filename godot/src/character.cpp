@@ -1,9 +1,13 @@
 #include "character.h"
+#include <projectiles/projectile.h>
 #include "gun/gun.h"
 
 using namespace godot;
 
 void Character::_bind_methods() {
+	ADD_SIGNAL(MethodInfo("inc_hit_projectile", PropertyInfo(Variant::OBJECT, "proj")));
+	//ADD_SIGNAL(MethodInfo("inc_hit_projectile"));
+
 	ClassDB::bind_method(D_METHOD("CharGetMaxSpeed"), &Character::GetMaxSpeed);
 	ClassDB::bind_method(D_METHOD("CharApplyMovement"), &Character::ApplyMovement);
 	ClassDB::bind_method(D_METHOD("CharDie"), &Character::Die);
@@ -24,8 +28,9 @@ void Character::ApplyMovement(Vector2 movement) {
 	move_and_slide();
 }
 
-void Character::OnHitByProjectile() {
-
+void Character::HitWithProjectile(Projectile* proj) {
+	//print_line(vformat("Hit! %X", (uintptr_t)proj));
+	emit_signal("inc_hit_projectile", proj);
 }
 
 void Character::Die() {

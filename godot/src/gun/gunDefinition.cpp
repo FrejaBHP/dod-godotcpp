@@ -60,6 +60,13 @@ void GunDefinition::ApplyPartsBonuses() {
 		RarityScore += Accessory->PartRarity;
 	}
 
+	if (Element.get() != nullptr) {
+		for (size_t i = 0; i < Element->Bonuses.size(); i++) {
+			AttrBonuses[Element->Bonuses[i].AttrType] += Element->Bonuses[i];
+		}
+		//RarityScore += Element->PartRarity;
+	}
+
 	// FIXME: Skal fjernes senere
 	CalculateStats();
 }

@@ -3,8 +3,16 @@
 
 constexpr int32_t NumBasicMaterialsEach = 3;
 
-std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer) {
-	int32_t matIndex = GetRandomInt(0, NumBasicMaterialsEach - 1);
+std::unique_ptr<MaterialComponent> GetMaterial(EManufacturer manufacturer, int index) {
+	int matIndex;
+
+	if (index == -1) {
+		matIndex = GetRandomInt(0, NumBasicMaterialsEach - 1);
+	}
+	else {
+		matIndex = index;
+	}
+
 	MaterialComponent* mat;
 
 	switch (manufacturer) {
@@ -12,7 +20,7 @@ std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer)
 			if (matIndex == 0) {
 				mat = new MatMars1();
 			}
-			else if (matIndex == 0) {
+			else if (matIndex == 1) {
 				mat = new MatMars2();
 			}
 			else {
@@ -24,7 +32,7 @@ std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer)
 			if (matIndex == 0) {
 				mat = new MatPrism1();
 			}
-			else if (matIndex == 0) {
+			else if (matIndex == 1) {
 				mat = new MatPrism2();
 			}
 			else {
@@ -36,7 +44,7 @@ std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer)
 			if (matIndex == 0) {
 				mat = new MatBozboz1();
 			}
-			else if (matIndex == 0) {
+			else if (matIndex == 1) {
 				mat = new MatBozboz2();
 			}
 			else {
@@ -48,7 +56,7 @@ std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer)
 			if (matIndex == 0) {
 				mat = new MatWeaver1();
 			}
-			else if (matIndex == 0) {
+			else if (matIndex == 1) {
 				mat = new MatWeaver2();
 			}
 			else {
@@ -60,7 +68,7 @@ std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer)
 			if (matIndex == 0) {
 				mat = new MatSmitherson1();
 			}
-			else if (matIndex == 0) {
+			else if (matIndex == 1) {
 				mat = new MatSmitherson2();
 			}
 			else {
@@ -72,7 +80,7 @@ std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer)
 			if (matIndex == 0) {
 				mat = new MatViolet1();
 			}
-			else if (matIndex == 0) {
+			else if (matIndex == 1) {
 				mat = new MatViolet2();
 			}
 			else {
@@ -84,7 +92,7 @@ std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer)
 			if (matIndex == 0) {
 				mat = new MatPrometheus1();
 			}
-			else if (matIndex == 0) {
+			else if (matIndex == 1) {
 				mat = new MatPrometheus2();
 			}
 			else {
@@ -96,7 +104,7 @@ std::unique_ptr<MaterialComponent> GetRandomMaterial(EManufacturer manufacturer)
 			if (matIndex == 0) {
 				mat = new MatBjorn1();
 			}
-			else if (matIndex == 0) {
+			else if (matIndex == 1) {
 				mat = new MatBjorn2();
 			}
 			else {

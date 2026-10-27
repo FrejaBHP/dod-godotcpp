@@ -4,6 +4,16 @@
 std::random_device rnd;
 std::mt19937 gen(rnd());
 
+const double DamageEffectiveness[6][5] = {
+	/*			Neutral	 Flesh   Shield  Armour  Energy			*/
+	/*None*/	{ 1.0,    1.0,    1.0,    0.9,    0.9 },
+	/*Incen*/	{ 1.0,    1.5,    0.75,   0.6,    0.75 },
+	/*Shock*/	{ 1.0,    0.6,    1.5,    0.75,   0.9 },
+	/*Corro*/	{ 1.0,    0.75,   0.6,    1.5,    0.75 },
+	/*Cryo*/	{ 1.0,    1.25,   0.9,    0.9,    1.5 },
+	/*Explo*/	{ 1.0,    1.0,    0.9,    1.25,   0.9 }
+};
+
 int GetRandomInt(int min, int max) {
 	std::uniform_int_distribution<std::mt19937::result_type> distr(min, max);
 
@@ -27,6 +37,14 @@ double GetBaseScaled(int32_t level) {
 	double base = 0.8 * (pow(level, 1.3) + 9);
 
 	return base;
+}
+
+double GetDamageEffectiveness(EElement damageType, EHealthType healthType) {
+	if (damageType == EElement::COUNT) {
+		return 0.0;
+	}
+
+	return DamageEffectiveness[(int)damageType][(int)healthType];
 }
 
 godot::Ref<godot::AudioStream> GetAudio(godot::String name) {
@@ -73,6 +91,70 @@ godot::Color GetRarityColour(int32_t rarity) {
 	}
 
 	return rarityColour;
+}
+
+godot::Color GetElementColour(EElement element) {
+	godot::Color elementColour;
+
+	switch (element) {
+		case EElement::Fire:
+			elementColour = godot::Color(0.85f, 0.3f, 0.0f, 1.f);
+			break;
+
+		case EElement::Shock:
+			elementColour = godot::Color(0.1f, 0.1f, 1.0f, 1.f);
+			break;
+
+		case EElement::Corrosive:
+			elementColour = godot::Color(0.1f, 1.0f, 0.1f, 1.f);
+			break;
+
+		case EElement::Cryo:
+			elementColour = godot::Color(0.1f, 0.4f, 1.0f, 1.f);
+			break;
+
+		case EElement::Explosive:
+			elementColour = godot::Color(1.0f, 0.8f, 0.0f, 1.f);
+			break;
+
+		default: // Non-elemental
+			elementColour = godot::Color(0.7f, 0.7f, 0.7f, 1.f);
+			break;
+	}
+
+	return elementColour;
+}
+
+godot::Color GetHealthColour(EHealthType type) {
+	godot::Color healthColour;
+
+	switch (type) {
+		case EHealthType::Neutral:
+			healthColour = godot::Color(0.7f, 0.7f, 0.7f, 1.0f);
+			break;
+
+		case EHealthType::Flesh:
+			healthColour = godot::Color(1.0f, 0.0f, 0.0f, 1.0f);
+			break;
+
+		case EHealthType::Shield:
+			healthColour = godot::Color(0.3f, 0.3f, 1.0f, 1.0f);
+			break;
+
+		case EHealthType::Armour:
+			healthColour = godot::Color(0.95f, 0.95f, 0.1f, 1.0f);
+			break;
+
+		case EHealthType::Energy:
+			healthColour = godot::Color(1.0f, 1.0f, 1.0f, 1.0f);
+			break;
+
+		default:
+			healthColour = godot::Color(0.7f, 0.7f, 0.7f, 1.0f);
+			break;
+	}
+
+	return healthColour;
 }
 
 std::string GetManufacturerName(EManufacturer manufacturer) {
@@ -129,6 +211,8 @@ std::string GetGunSubTypeName(EGunSubType subtype) {
 			return "Machine Pistol";
 		case EGunSubType::Revolver:
 			return "Revolver";
+		case EGunSubType::SMG:
+			return "SMG";
 		case EGunSubType::CombatRifle:
 			return "Combat Rifle";
 		case EGunSubType::MachineGun:
@@ -143,6 +227,8 @@ std::string GetGunSubTypeName(EGunSubType subtype) {
 			return "Semi-Auto Sniper";
 		case EGunSubType::SniperBoltAction:
 			return "Bolt Action Sniper";
+		case EGunSubType::Launcher:
+			return "Launcher";
 		default:
 			return "???";
 	}
@@ -160,6 +246,29 @@ std::string GetElementName(EElement element) {
 			return "Corrosive";
 		case EElement::Cryo:
 			return "Cryo";
+		case EElement::Explosive:
+			return "Explosive";
+		default:
+			return "???";
+	}
+}
+
+std::string GetAmmoTypeName(EAmmoType ammotype) {
+	switch (ammotype) {
+		case EAmmoType::Pistol:
+			return "Pistol";
+		case EAmmoType::Revolver:
+			return "Revolver";
+		case EAmmoType::SMG:
+			return "SMG";
+		case EAmmoType::Rifle:
+			return "Rifle";
+		case EAmmoType::Shotgun:
+			return "Shotgun";
+		case EAmmoType::Sniper:
+			return "Sniper";
+		case EAmmoType::Launcher:
+			return "Launcher";
 		default:
 			return "???";
 	}

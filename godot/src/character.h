@@ -6,6 +6,7 @@
 using namespace godot;
 
 class Gun;
+class Projectile;
 
 class Character : public CharacterBody2D {
 	GDCLASS(Character, CharacterBody2D)
@@ -17,9 +18,13 @@ public:
 	EAlignment Alignment;
 
 	virtual void ApplyMovement(Vector2 movement);
-	virtual void OnHitByProjectile();
+	virtual void HitWithProjectile(Projectile* proj);
 	virtual void Die();
 	double GetMaxSpeed() const;
+
+	double FireRateMod { 1. };
+
+	int Level { 1 };
 
 	double Inaccuracy { 0 };
 	double Recoil { 0 };
@@ -28,9 +33,13 @@ public:
 	double InaccuracyRegen { 0 };
 	double InaccuracyRegenDelay { 0.2 };
 
-	int32_t PistolAmmo { 48 };
-	int32_t SMGAmmo { 192 };
-	int32_t ARAmmo { 120 };
+	int PistolAmmo { 72 };
+	int RevolverAmmo { 24 };
+	int SMGAmmo { 192 };
+	int ARAmmo { 120 };
+	int ShotgunAmmo { 40 };
+	int SniperAmmo { 18 };
+	int LauncherAmmo { 8 };
 
 	bool IsDead = false;
 

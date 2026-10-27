@@ -13,6 +13,8 @@ constexpr int32_t PlayerNumGunSlots = 3;
 class Player : public Character {
 	GDCLASS(Player, Character)
 
+friend PlayerController;
+
 public:
 	Player();
 	~Player() = default;
@@ -24,19 +26,24 @@ public:
 	void SetController(PlayerController* controller);
 	PlayerController* GetController() const;
 
+	// Assigns gun to given gun slot and sets gun's reference to the player
 	void SetGunInSlot(int32_t slot, Gun* gun);
 	Gun* GetGunInSlot(int32_t slot) const;
+
+	// Sets the gun referenced by CurrentGun
 	void SetCurrentGun(Gun* gun);
 	Gun* GetCurrentGun();
 
+	// If gun exists, sets CurrentGun and swaps the wielded gun to the one in the given slot
 	void SwitchToGunInSlot(int32_t slot);
 	
 protected:
-	static void _bind_methods();
-
 	PlayerController* Controller = nullptr;
-
 	Gun* GunSlots[PlayerNumGunSlots];
+
+	double Experience { 0.0 };
+
+	static void _bind_methods();
 
 private:
 

@@ -15,7 +15,11 @@ public:
 	void _ready() override;
 	void _physics_process(double delta) override;
 
+	void ResetTestMap();
+
 protected:
+	Node2D* MapNode { nullptr };
+
 	static void _bind_methods();
 
 private:

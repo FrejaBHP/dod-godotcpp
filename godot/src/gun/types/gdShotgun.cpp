@@ -3,6 +3,7 @@
 
 GDShotgun::GDShotgun() {
 	GunType = EGunType::Shotgun;
+	GunAmmoType = EAmmoType::Shotgun;
 	FireMode = EFireMode::Semi;
 }
 
@@ -132,6 +133,7 @@ std::unique_ptr<TitleComponent> GDShotgun::GetEligibleTitle() {
 		else {
 			title = new ShotgunTitleDefault();
 		}
+		PriFireAudio = GetAudio("guns/sg_cs_def.mp3");
 	}
 	else {
 		if (AttrBonuses[EAttributeType::Damage].Scale >= 0.45) {
@@ -146,6 +148,7 @@ std::unique_ptr<TitleComponent> GDShotgun::GetEligibleTitle() {
 		else {
 			title = new ShotgunTitleDefault();
 		}
+		PriFireAudio = GetAudio("guns/sg_as_def.mp3");
 	}
 
 	return std::unique_ptr<TitleComponent>(title);
