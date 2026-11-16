@@ -5,14 +5,15 @@
 #include <godot_cpp/classes/window.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 
-#include "map/mapBase.h"
+#include "runManager.h"
 #include "player/playerChar.h"
-
 
 using namespace godot;
 
-void World::_bind_methods() {
 
+void World::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("SetCurrentRoom", "p_Room"), &World::SetCurrentRoom);
+	ClassDB::bind_method(D_METHOD("GetCurrentRoom"), &World::GetCurrentRoom);
 }
 
 World::World() {
@@ -20,15 +21,17 @@ World::World() {
 }
 
 void World::_ready() {
-	MapNode = get_node<Node2D>("Map");
+	WRunManager = get_node<RunManager>("RunManager");
+	RoomContainerNode = get_node<Node2D>("RoomConNode");
 
 	GameInstance& gi = GameInstance::GetInstance();
 
 	gi.Init();
-	gi.RegisterWorld(this);
+	gi.RegisterWorld(this, WRunManager);
 	gi.HideCursor();
 
-	ResetTestMap();
+	//ResetTestRoom();
+	WRunManager->StartRun();
 }
 
 void World::_physics_process(double delta) {
@@ -36,19 +39,32 @@ void World::_physics_process(double delta) {
 }
 
 // Relegate to run manager class later, whenever it will cease to not exist
-void World::ResetTestMap() {
-	if (MapNode->get_child_count() > 0) {
-		MapBase* oldMap = static_cast<MapBase*>(MapNode->get_child(0));
-		GameInstance::GetInstance().GetPlayer()->set_global_position(oldMap->PlayerStartMarker->get_global_position());
-		oldMap->queue_free();
+void World::ResetTestRoom() {
+	if (RoomContainerNode->get_child_count() > 0) {
+		RoomBase* oldRoom = static_cast<RoomBase*>(RoomContainerNode->get_child(0));
+		GameInstance::GetInstance().GetPlayer()->set_global_position(oldRoom->PlayerStartMarker->get_global_position());
+
+		CurrentRoom = nullptr;
+		oldRoom->queue_free();
 	}
 
-	Ref<PackedScene> testmapScene = ResourceLoader::get_singleton()->load("res://scenes/maps/map_test.tscn");
-	if (testmapScene->can_instantiate()) {
-		MapBase* map = static_cast<MapBase*>(testmapScene->instantiate());
+	Ref<PackedScene> testRoomScene = ResourceLoader::get_singleton()->load("res://scenes/rooms/room_test.tscn");
+	if (testRoomScene->can_instantiate()) {
+		RoomBase* room = static_cast<RoomBase*>(testRoomScene->instantiate());
 
-		//MapNode->add_child(map);
-		MapNode->call_deferred("add_child", map);
-		
+		RoomContainerNode->call_deferred("add_child", room);
+		call_deferred("SetCurrentRoom", room);
 	}
+}
+
+void World::SetCurrentRoom(RoomBase* room) {
+	CurrentRoom = room;
+}
+
+RoomBase* World::GetCurrentRoom() const {
+	return CurrentRoom;
+}
+
+Node2D* const World::GetRoomContainerNode() const {
+	return RoomContainerNode;
 }

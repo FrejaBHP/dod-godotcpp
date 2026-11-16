@@ -1,7 +1,7 @@
 #include "enemies/ai/basicRangedAIComponent.h"
 #include "enemies/enemyController.h"
 #include "gun/gun.h"
-#include "enemies/enemyGun.h"
+#include "enemies/enemy.h"
 
 // Salvo min and max counts
 
@@ -27,6 +27,10 @@ constexpr double RefireCR { 0.35 };
 constexpr double RefireAShotgun { 0.40 };
 constexpr double RefireCShotgun { 0.35 };
 
+// Effective range weapon multipliers
+
+constexpr double PrefRangeMultPistol { 1.25 };
+
 void BasicRangedEAIComponent::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("GunFiredAIC"), &BasicRangedEAIComponent::GunFired);
 	ClassDB::bind_method(D_METHOD("RegisterGunAIC"), &BasicRangedEAIComponent::RegisterGun);
@@ -38,7 +42,7 @@ void BasicRangedEAIComponent::_ready() {
 
 void BasicRangedEAIComponent::SetController(EnemyController* ec) {
 	Controller = ec;
-	CtrlEGun = static_cast<EnemyGun*>(Controller->ControlledChar);
+	CtrlEGun = static_cast<Enemy*>(Controller->ControlledChar);
 
 	Controller->connect("gun_fired_aic", callable_mp(this, &BasicRangedEAIComponent::GunFired));
 	Controller->connect("register_gun_aic", callable_mp(this, &BasicRangedEAIComponent::RegisterGun));
@@ -48,12 +52,24 @@ void BasicRangedEAIComponent::RegisterGun() {
 	if (CtrlEGun && CtrlEGun->CurrentGun) {
 		EGunSubType gst = CtrlEGun->CurrentGun->GunDef->GunSubType;
 
+		// Salvo/refire setup
 		if (gst == EGunSubType::MachinePistol || gst == EGunSubType::SMG || gst == EGunSubType::MachineGun) {
 			CanGunSalvo = true;
 			SalvoRemaining = GetNewSalvoCount();
 		}
 		else if (gst != EGunSubType::SniperBoltAction || gst != EGunSubType::Launcher) {
 			CanGunRefire = true;
+		}
+
+		// Preferred range setup
+		if (gst == EGunSubType::AssaultShotgun || gst == EGunSubType::CombatShotgun) {
+			PreferredRange = PrefBaseRangeNear;
+		}
+		else if (gst == EGunSubType::SniperBoltAction || gst == EGunSubType::SniperSemiAuto) {
+			PreferredRange = PrefBaseRangeFar;
+		}
+		else {
+			PreferredRange = PrefBaseRangeNormal * (1.0 * (CtrlEGun->CurrentGun->GunDef->Accuracy / 100));
 		}
 
 		NextShot = steady_clock::now();
@@ -180,12 +196,15 @@ void BasicRangedEAIComponent::ExecuteChase() {
 		*/
 
 		Controller->ControlledChar->look_at(Controller->Target->get_global_position());
-
-		if (IsFacingTarget) {
-			FireAtTarget();
+		if (CtrlEGun->GetCanUseShield()) {
+			if (IsFacingTarget && CtrlEGun->get_global_position().distance_to(Controller->Target->get_global_position()) < 32) {
+				FireAtTarget();
+			}
 		}
 		else {
-			//Controller->ControlledChar->ApplyMovement(Controller->ControlledChar->get_global_transform().columns[0]);
+			if (IsFacingTarget && CtrlEGun->get_global_position().distance_to(Controller->Target->get_global_position()) < PreferredRange) {
+				FireAtTarget();
+			}
 		}
 	}
 }

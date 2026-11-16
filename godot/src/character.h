@@ -12,16 +12,6 @@ class Character : public CharacterBody2D {
 	GDCLASS(Character, CharacterBody2D)
 
 public:
-	void _ready() override;
-	void _physics_process(double delta) override;
-
-	EAlignment Alignment;
-
-	virtual void ApplyMovement(Vector2 movement);
-	virtual void HitWithProjectile(Projectile* proj);
-	virtual void Die();
-	double GetMaxSpeed() const;
-
 	double FireRateMod { 1. };
 
 	int Level { 1 };
@@ -42,14 +32,25 @@ public:
 	int LauncherAmmo { 8 };
 
 	bool IsDead = false;
+	EAlignment Alignment;
+
+	void _ready() override;
+	void _physics_process(double delta) override;
+
+	virtual void ApplyMovement(Vector2 movement);
+	virtual void HitWithProjectile(Projectile* proj);
+	virtual void Die();
+
+	void SetMaxSpeed(const double newMax);
+	double GetMaxSpeed() const;
 
 protected:
-	static void _bind_methods();
-	virtual void OnDeath();
-
 	Gun* CurrentGun = nullptr;
 
 	float MaxSpeed { 100.f };
+
+	static void _bind_methods();
+	virtual void OnDeath();
 
 private:
 };

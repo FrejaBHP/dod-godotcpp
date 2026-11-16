@@ -2,9 +2,10 @@
 
 #include "characterController.h"
 #include "ui/crosshair.h"
+#include "interactible/interactible.h"
 
 #include <godot_cpp/classes/node2d.hpp>
-#include <godot_cpp/classes/area2d.hpp>
+//#include <godot_cpp/classes/area2d.hpp>
 #include <godot_cpp/classes/sprite2d.hpp>
 #include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -25,7 +26,7 @@ public:
 	PlayerController();
 	~PlayerController() = default;
 
-	void _input(const Ref<InputEvent>& p_event) override;
+	void _unhandled_input(const Ref<InputEvent>& p_event) override;
 	void _ready() override;
 	void _process(double delta) override;
 	void _physics_process(double delta) override;
@@ -34,6 +35,9 @@ public:
 
 	void SetPlayer(Player* player);
 	Player* GetPlayer() const;
+
+	// Updates HUD values, do not set MaxHealth directly
+	void SetMaxHealth(double max);
 
 	void OnHitByProjectile(Projectile* proj) override;
 	void TakeDamage(DamageInfo& di) override;
@@ -67,6 +71,9 @@ protected:
 	std::vector<GunDropped*> DroppedGunsInRadius;
 	GunDropped* DroppedGunInFocus { nullptr };
 
+	std::vector<Interactible*> InteractiblesInRadius;
+	Interactible* InteractibleInFocus { nullptr };
+
 	bool isLMBHeld = false;
 	bool isRMBHeld = false;
 
@@ -77,15 +84,18 @@ protected:
 
 	static void _bind_methods();
 
+	// When a pickup, like ammo, comes within PickupRadius' area
 	void PickupAreaEntered(Area2D* area);
 	void PickupAreaExited(Area2D* area);
 
-	void DroppedGunAreaEntered(Area2D* area);
-	void DroppedGunAreaExited(Area2D* area);
+	// When a GunDropped object comes within DroppedGunRadius' area
+	void InteractibleAreaEntered(Area2D* area);
+	void InteractibleAreaExited(Area2D* area);
 
 	void PickupTimerTimeout();
 	void ScanForGuns();
 	GunDropped* GetClosestGunDropped();
+	Interactible* GetClosestInteractible();
 
 	void Interact();
 	void PickUpGunInSlot(int32_t slot);

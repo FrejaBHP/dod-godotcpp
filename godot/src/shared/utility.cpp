@@ -4,6 +4,9 @@
 std::random_device rnd;
 std::mt19937 gen(rnd());
 
+const godot::Color ColourItemAmmoCrate { 0.3f, 0.5f, 0.0f, 1.0f };
+const godot::Color ColourItemWeaponsChest { 0.75f, 0.0f, 0.0f, 1.0f };
+
 const double DamageEffectiveness[6][5] = {
 	/*			Neutral	 Flesh   Shield  Armour  Energy			*/
 	/*None*/	{ 1.0,    1.0,    1.0,    0.9,    0.9 },
@@ -32,9 +35,23 @@ double GetRandomDouble(double min, double max) {
 	return distr(gen);
 }
 
-double GetBaseScaled(int32_t level) {
+double GetWeaponBaseDamage(int level) {
 	// 0.8 * (( Level ^ 1.3) + 9)
-	double base = 0.8 * (pow(level, 1.3) + 9);
+	//double base = 0.8 * (pow(level, 1.3) + 9);
+
+	double base = 8 * pow(1.06, level - 1);
+
+	return base;
+}
+
+double GetShieldBaseCapacity(int level) {
+	double base = 50 * pow(1.06, level - 1);
+
+	return base;
+}
+
+double GetEnemyBaseHealth(int level) {
+	double base = 50 * pow(1.074, level - 1);
 
 	return base;
 }
@@ -52,6 +69,36 @@ godot::Ref<godot::AudioStream> GetAudio(godot::String name) {
 
 	godot::Ref<godot::AudioStream> audio = loader->load("res://assets/sounds/" + name);
 	return audio;
+}
+
+EItemRarity GetItemRarity(int32_t rarity) {
+	if (rarity < RarityMinUncommon) {
+		return EItemRarity::Common;
+	}
+	// 6 - 12: Green/Uncommon
+	else if (rarity < RarityMinRare) {
+		return EItemRarity::Uncommon;
+	}
+	// 13 - 19: Blue/Rare
+	else if (rarity < RarityMinEpic) {
+		return EItemRarity::Rare;
+	}
+	// 20 - 49: Purple/Epic
+	else if (rarity < RarityMinLegendaryLow) {
+		return EItemRarity::Epic;
+	}
+	// 50 - 62: Yellow/Unique
+	else if (rarity < RarityMinLegendaryMid) {
+		return EItemRarity::SemiLegendary;
+	}
+	// 63 - 100: Orange/Legendary
+	else if (rarity < RarityMinPearlescent) {
+		return EItemRarity::Legendary;
+	}
+	// 101+: Pearlescent
+	else {
+		return EItemRarity::Pearlescent;
+	}
 }
 
 godot::Color GetRarityColour(int32_t rarity) {
@@ -110,7 +157,7 @@ godot::Color GetElementColour(EElement element) {
 			break;
 
 		case EElement::Cryo:
-			elementColour = godot::Color(0.1f, 0.4f, 1.0f, 1.f);
+			elementColour = godot::Color(0.3f, 0.8f, 1.0f, 1.f);
 			break;
 
 		case EElement::Explosive:
@@ -157,7 +204,7 @@ godot::Color GetHealthColour(EHealthType type) {
 	return healthColour;
 }
 
-std::string GetManufacturerName(EManufacturer manufacturer) {
+godot::String GetManufacturerName(EManufacturer manufacturer) {
 	switch (manufacturer) {
 		case EManufacturer::Mars:
 			return "Mars";
@@ -180,7 +227,7 @@ std::string GetManufacturerName(EManufacturer manufacturer) {
 	}
 }
 
-std::string GetGunTypeName(EGunType guntype) {
+godot::String GetGunTypeName(EGunType guntype) {
 	switch (guntype) {
 		case EGunType::None:
 			return "None";
@@ -201,7 +248,7 @@ std::string GetGunTypeName(EGunType guntype) {
 	}
 }
 
-std::string GetGunSubTypeName(EGunSubType subtype) {
+godot::String GetGunSubTypeName(EGunSubType subtype) {
 	switch (subtype) {
 		case EGunSubType::None:
 			return "None";
@@ -234,7 +281,7 @@ std::string GetGunSubTypeName(EGunSubType subtype) {
 	}
 }
 
-std::string GetElementName(EElement element) {
+godot::String GetElementName(EElement element) {
 	switch (element) {
 		case EElement::None:
 			return "None";
@@ -253,7 +300,7 @@ std::string GetElementName(EElement element) {
 	}
 }
 
-std::string GetAmmoTypeName(EAmmoType ammotype) {
+godot::String GetAmmoTypeName(EAmmoType ammotype) {
 	switch (ammotype) {
 		case EAmmoType::Pistol:
 			return "Pistol";
@@ -269,6 +316,34 @@ std::string GetAmmoTypeName(EAmmoType ammotype) {
 			return "Sniper";
 		case EAmmoType::Launcher:
 			return "Launcher";
+		default:
+			return "???";
+	}
+}
+
+godot::String GetRarityName(EItemRarity rarity) {
+	switch (rarity) {
+		case EItemRarity::Common:
+			return "Common";
+
+		case EItemRarity::Uncommon:
+			return "Uncommon";
+
+		case EItemRarity::Rare:
+			return "Rare";
+
+		case EItemRarity::Epic:
+			return "Epic";
+
+		case EItemRarity::SemiLegendary:
+			return "Not Sure Yet";
+
+		case EItemRarity::Legendary:
+			return "Legendary";
+
+		case EItemRarity::Pearlescent:
+			return "Pearlescent";
+
 		default:
 			return "???";
 	}

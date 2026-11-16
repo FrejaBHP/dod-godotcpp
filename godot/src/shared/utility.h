@@ -53,6 +53,15 @@ struct DamageInfo {
 	}
 };
 
+struct RoomRewardsInfo {
+	ERewardClass RewardClass;
+	EItemRewardClass ItemRewardClass;
+	EChestRewardClass ChestRewardClass;
+	ERoomRewardClass RoomRewardClass;
+	EEquipmentRewardClass EquipmentRewardClass;
+	EReversalRewardClass ReversalRewardClass;
+};
+
 constexpr int32_t RarityMinUncommon = 6;
 constexpr int32_t RarityMinRare = 13;
 constexpr int32_t RarityMinEpic = 20;
@@ -70,13 +79,20 @@ extern std::mt19937 gen;
 
 extern const double DamageEffectiveness[6][5];
 
+extern const godot::Color ColourItemAmmoCrate;
+extern const godot::Color ColourItemWeaponsChest;
+
 // Returns a number between [min, max] (inclusive)
 int GetRandomInt(int min, int max);
 float GetRandomFloat(float min, float max);
 double GetRandomDouble(double min, double max);
 
-double GetBaseScaled(int32_t level);
+double GetWeaponBaseDamage(int level);
+double GetShieldBaseCapacity(int level);
+double GetEnemyBaseHealth(int level);
 double GetDamageEffectiveness(EElement damageType, EHealthType healthType);
+
+EItemRarity GetItemRarity(int32_t rarity);
 
 godot::Color GetRarityColour(int32_t rarity);
 godot::Ref<godot::AudioStream> GetAudio(godot::String name);
@@ -84,8 +100,9 @@ godot::Color GetElementColour(EElement element);
 
 godot::Color GetHealthColour(EHealthType type);
 
-std::string GetManufacturerName(EManufacturer manufacturer);
-std::string GetGunTypeName(EGunType guntype);
-std::string GetGunSubTypeName(EGunSubType subtype);
-std::string GetElementName(EElement element);
-std::string GetAmmoTypeName(EAmmoType ammotype);
+godot::String GetManufacturerName(EManufacturer manufacturer);
+godot::String GetGunTypeName(EGunType guntype);
+godot::String GetGunSubTypeName(EGunSubType subtype);
+godot::String GetElementName(EElement element);
+godot::String GetAmmoTypeName(EAmmoType ammotype);
+godot::String GetRarityName(EItemRarity rarity);

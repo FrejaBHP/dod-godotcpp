@@ -1,4 +1,6 @@
 #include "combat/healthComponent.h"
+#include "characterController.h"
+#include "character.h"
 
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
@@ -11,7 +13,31 @@ void HealthComponent::_bind_methods() {
 }
 
 void HealthComponent::_ready() {
+	Controller = static_cast<CharacterController*>(get_parent());
 	BarContainer = get_node<VBoxContainer>("UIAnchor/BarContainer");
+}
+
+void HealthComponent::InitHealthBars() {
+	int addedBars { 0 };
+
+	for (size_t i = 0; i < BarContainer->get_child_count(); i++) {
+		if (BarContainer->get_child(i)->is_in_group("HealthBar")) {
+			HealthBar* hb = static_cast<HealthBar*>(BarContainer->get_child(i));
+			HealthBars.append(hb);
+
+			hb->FinaliseHealthBar(GetEnemyBaseHealth(Controller->ControlledChar->Level));
+			TotalMaxHealth += hb->GetMaxHealth();
+			TotalCurrentHealth += hb->GetCurrentHealth();
+
+			++addedBars;
+		}
+	}
+
+	if (addedBars > 0) {
+		Vector2 pos = BarContainer->get_position();
+		pos.y -= 6.f * addedBars;
+		BarContainer->set_position(pos);
+	}
 }
 
 void HealthComponent::_physics_process(double delta) {

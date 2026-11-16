@@ -15,8 +15,10 @@
 #include "player/playerController.h"
 #include "player/playerChar.h"
 #include "gameInstance.h"
+#include "runManager.h"
 #include "gun/gun.h"
 #include "gun/gunDropped.h"
+#include "interactible/itemChest.h"
 #include "shared/utility.h"
 #include "ui/hud.h"
 #include "pickup/pickupAmmo.h"
@@ -45,8 +47,8 @@ void PlayerController::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("UpdateAmmoLabel"), &PlayerController::UpdateAmmoLabel);
 	ClassDB::bind_method(D_METHOD("PickupAreaEntered"), &PlayerController::PickupAreaEntered);
 	ClassDB::bind_method(D_METHOD("PickupAreaExited"), &PlayerController::PickupAreaExited);
-	ClassDB::bind_method(D_METHOD("DroppedGunAreaEntered"), &PlayerController::DroppedGunAreaEntered);
-	ClassDB::bind_method(D_METHOD("DroppedGunAreaExited"), &PlayerController::DroppedGunAreaExited);
+	ClassDB::bind_method(D_METHOD("InteractibleAreaEntered"), &PlayerController::InteractibleAreaEntered);
+	ClassDB::bind_method(D_METHOD("InteractibleAreaExited"), &PlayerController::InteractibleAreaExited);
 	ClassDB::bind_method(D_METHOD("Interact"), &PlayerController::Interact);
 	ClassDB::bind_method(D_METHOD("SwapGunOnGround"), &PlayerController::SwapGunOnGround);
 	ClassDB::bind_method(D_METHOD("PickupTimerTimeout"), &PlayerController::PickupTimerTimeout);
@@ -66,7 +68,7 @@ void PlayerController::_ready() {
 	InputMap::get_singleton()->load_from_project_settings();
 }
 
-void PlayerController::_input(const Ref<InputEvent>& p_event) {
+void PlayerController::_unhandled_input(const Ref<InputEvent>& p_event) {
 	if (p_event.ptr()->is_action_pressed("lmb")) {
 		if (!isLMBHeld) {
 			Gun* currentGun = ControlledPlayer->GetCurrentGun();
@@ -112,7 +114,7 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug0")) {
-			GameInstance::GetInstance().GenerateAndDropGun(-1);
+			GameInstance::GetInstance().GenerateAndDropGun(-1, GameInstance::GetInstance().GetRunManager()->CurrentAreaLevel, nullptr);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug1")) {
@@ -139,23 +141,23 @@ void PlayerController::_input(const Ref<InputEvent>& p_event) {
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug4")) {
-			GameInstance::GetInstance().GenerateAndDropGun(0);
+			GameInstance::GetInstance().GenerateAndDropGun(0, GameInstance::GetInstance().GetRunManager()->CurrentAreaLevel, nullptr);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug5")) {
-			GameInstance::GetInstance().GenerateAndDropGun(1);
+			GameInstance::GetInstance().GenerateAndDropGun(1, GameInstance::GetInstance().GetRunManager()->CurrentAreaLevel, nullptr);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug6")) {
-			GameInstance::GetInstance().GenerateAndDropGun(2);
+			GameInstance::GetInstance().GenerateAndDropGun(2, GameInstance::GetInstance().GetRunManager()->CurrentAreaLevel, nullptr);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug7")) {
-			GameInstance::GetInstance().GenerateAndDropGun(3);
+			GameInstance::GetInstance().GenerateAndDropGun(3, GameInstance::GetInstance().GetRunManager()->CurrentAreaLevel, nullptr);
 		}
 
 		if (p_event.ptr()->is_action_pressed("debug8")) {
-			GameInstance::GetInstance().GenerateAndDropGun(4);
+			GameInstance::GetInstance().GenerateAndDropGun(4, GameInstance::GetInstance().GetRunManager()->CurrentAreaLevel, nullptr);
 		}
 	}
 }
@@ -208,12 +210,15 @@ Vector2 PlayerController::ProcessMovementInput() {
 }
 
 void PlayerController::OnHitByProjectile(Projectile* proj) {
-
+	TakeDamage(proj->DmgInfo);
 }
 
 // Health kan laves om til et component med sit eget system. Placeholder her
 void PlayerController::TakeDamage(DamageInfo& di) {
+	// No shields yet
 
+	ControlledPlayer->CurrentHealth -= di.GetTotalDamage();
+	PlayerHUD->UpdateHealthCurrent(ControlledPlayer->CurrentHealth);
 }
 
 void PlayerController::SwitchGun(int32_t slot) {
@@ -228,6 +233,34 @@ void PlayerController::SwitchGun(int32_t slot) {
 }
 
 void PlayerController::Interact() {
+	if (InteractibleInFocus) {
+		Node* parent = InteractibleInFocus->get_parent();
+
+		if (parent) {
+			if (parent->is_in_group("GunDropped")) {
+				GunDropped* dgun = static_cast<GunDropped*>(parent);
+
+				if (dgun->CanBePickedUp) {
+					if (PlayerNumGunSlots > NumEquippedGuns) {
+						PickUpGunInSlot(NumEquippedGuns);
+						NumEquippedGuns++;
+					}
+					else {
+						Gun* curGun = GetPlayer()->GetCurrentGun();
+
+						if (curGun) {
+							SwapGunOnGround();
+						}
+					}
+				}
+			}
+			else {
+				InteractibleInFocus->Activate();
+			}
+		}
+	}
+
+	/*
 	if (DroppedGunInFocus && DroppedGunInFocus->CanBePickedUp) {
 		if (PlayerNumGunSlots > NumEquippedGuns) {
 			PickUpGunInSlot(NumEquippedGuns);
@@ -241,6 +274,7 @@ void PlayerController::Interact() {
 			}
 		}
 	}
+	*/
 }
 
 void PlayerController::SetPlayer(Player* player) {
@@ -250,6 +284,7 @@ void PlayerController::SetPlayer(Player* player) {
 	HUD* hud = player->get_node<HUD>("CanvasLayer/PlayerHUD");
 	if (hud) {
 		PlayerHUD = hud;
+		PlayerHUD->BindController(this);
 		PlayerHUD->UpdateLevel(ControlledPlayer->Level);
 	}
 
@@ -286,8 +321,8 @@ void PlayerController::SetPlayer(Player* player) {
 		GunPickupRadius = gunPickupRadius;
 
 		// Note to self: Du kan spare 2 timer i fremtiden ved ikke at sætte CALLABLE_DEFERRED og skabe interne race conditions
-		GunPickupRadius->connect("area_entered", callable_mp(this, &PlayerController::DroppedGunAreaEntered));
-		GunPickupRadius->connect("area_exited", callable_mp(this, &PlayerController::DroppedGunAreaExited));
+		GunPickupRadius->connect("area_entered", callable_mp(this, &PlayerController::InteractibleAreaEntered));
+		GunPickupRadius->connect("area_exited", callable_mp(this, &PlayerController::InteractibleAreaExited));
 	}
 
 	Timer* gunPickupTimer = player->get_node<Timer>("GunPickupTimer");
@@ -314,10 +349,19 @@ void PlayerController::SetPlayer(Player* player) {
 	player->connect("inc_hit_projectile", callable_mp(this, &PlayerController::OnHitByProjectile));
 
 	GameInstance::GetInstance().RegisterPlayer(ControlledPlayer);
+
+	PlayerHUD->SetHealthMax(ControlledPlayer->MaxHealth);
+	PlayerHUD->UpdateHealthCurrent(ControlledPlayer->CurrentHealth);
 }
 
 Player* PlayerController::GetPlayer() const {
 	return ControlledPlayer;
+}
+
+void PlayerController::SetMaxHealth(double max) {
+	ControlledPlayer->MaxHealth = max;
+	PlayerHUD->SetHealthMax(ControlledPlayer->MaxHealth);
+	PlayerHUD->UpdateHealthCurrent(ControlledPlayer->CurrentHealth);
 }
 
 Node2D* PlayerController::GetCrosshair() const {
@@ -346,7 +390,7 @@ void PlayerController::GetStartGun() {
 
 void PlayerController::PickUpGunInSlot(int32_t slot) {
 	DroppedGunInFocus->CanBePickedUp = false;
-	DroppedGunInFocus->PickupArea->set_monitorable(false);
+	DroppedGunInFocus->InteractibleArea->set_monitorable(false);
 
 	Gun* newGun = GameInstance::GetInstance().CopyDroppedGunToEquip(DroppedGunInFocus);
 	DroppedGunInFocus->queue_free();
@@ -363,7 +407,7 @@ void PlayerController::PickUpGunInSlot(int32_t slot) {
 
 void PlayerController::SwapGunOnGround() {
 	DroppedGunInFocus->CanBePickedUp = false;
-	DroppedGunInFocus->PickupArea->set_monitorable(false);
+	DroppedGunInFocus->InteractibleArea->set_monitorable(false);
 
 	// Presence tested before this is called, so we can probably assume it exists, barring immeasurably tiny time differences create a gap
 	Gun* oldGun = GetPlayer()->GetCurrentGun();
@@ -542,7 +586,7 @@ void PlayerController::PickupAreaEntered(Area2D* area) {
 				break;
 		}
 
-		print_line(vformat("Picked up %d %s ammo!", ammo->GetAmmoCount(), GetAmmoTypeName((EAmmoType)ammo->GetAmmoType()).c_str()));
+		print_line(vformat("Picked up %d %s ammo!", ammo->GetAmmoCount(), GetAmmoTypeName((EAmmoType)ammo->GetAmmoType())));
 
 		//ammo->Disable();
 		ammo->queue_free();
@@ -555,7 +599,14 @@ void PlayerController::PickupAreaExited(Area2D* area) {
 	
 }
 
-void PlayerController::DroppedGunAreaEntered(Area2D* area) {
+void PlayerController::InteractibleAreaEntered(Area2D* area) {
+	if (area->is_in_group("Interactible")) {
+		Interactible* inter = static_cast<Interactible*>(area);
+		InteractiblesInRadius.push_back(inter);
+		ScanForGuns();
+	}
+
+	/*
 	Node* parent = area->get_parent();
 
 	if (parent && parent->is_in_group("GunDropped")) {
@@ -564,9 +615,30 @@ void PlayerController::DroppedGunAreaEntered(Area2D* area) {
 		DroppedGunsInRadius.push_back(dGun);
 		ScanForGuns();
 	}
+	*/
 }
 
-void PlayerController::DroppedGunAreaExited(Area2D* area) {
+void PlayerController::InteractibleAreaExited(Area2D* area) {
+	if (area->is_in_group("Interactible")) {
+		Interactible* inter = static_cast<Interactible*>(area);
+
+		const std::vector<Interactible*>::iterator index = std::find(InteractiblesInRadius.begin(), InteractiblesInRadius.end(), inter);
+
+		if (InteractibleInFocus && inter == InteractibleInFocus) {
+			if (InteractibleInFocus->get_parent() && InteractibleInFocus->get_parent()->is_in_group("ItemChest")) {
+				ItemChest* focIC = static_cast<ItemChest*>(InteractibleInFocus->get_parent());
+
+				focIC->SetTextVisibility(false);
+			}
+		}
+
+		if (index != InteractiblesInRadius.end()) {
+			InteractiblesInRadius.erase(index);
+			ScanForGuns();
+		}
+	}
+
+	/*
 	Node* parent = area->get_parent();
 
 	if (parent && parent->is_in_group("GunDropped")) {
@@ -578,6 +650,7 @@ void PlayerController::DroppedGunAreaExited(Area2D* area) {
 			ScanForGuns();
 		}
 	}
+	*/
 }
 
 void PlayerController::PickupTimerTimeout() {
@@ -591,6 +664,7 @@ void PlayerController::PickupTimerTimeout() {
 }
 
 void PlayerController::ScanForGuns() {
+	/*
 	GunDropped* dgun = GetClosestGunDropped();
 
 	if (dgun) {
@@ -604,6 +678,79 @@ void PlayerController::ScanForGuns() {
 	else {
 		DroppedGunInFocus = nullptr;
 		PlayerHUD->HideItemCard();
+	}
+	*/
+
+	Interactible* inter = GetClosestInteractible();
+
+	if (inter) {
+		Node* parent = inter->get_parent();
+
+		if (parent) {
+			if (parent->is_in_group("GunDropped")) {
+				GunDropped* dgun = static_cast<GunDropped*>(parent);
+
+				if (!DroppedGunInFocus || dgun != DroppedGunInFocus) {
+					if (!dgun->ItemCardPivot->get_child_count()) {
+						dgun->CreateItemCard();
+					}
+					
+					//PlayerHUD->MovePriItemCardPivot(dgun->get_global_position());
+					//PlayerHUD->GetPriItemCard()->UseGunDef(*dgun->GunDef);
+					//PlayerHUD->ShowItemCard();
+				}
+
+				if (DroppedGunInFocus && dgun != DroppedGunInFocus) {
+					DroppedGunInFocus->DestroyItemCard();
+				}
+
+				DroppedGunInFocus = dgun;
+			}
+			else {
+				if (DroppedGunInFocus) {
+					DroppedGunInFocus->DestroyItemCard();
+				}
+
+				DroppedGunInFocus = nullptr;
+				//PlayerHUD->HideItemCard();
+			}
+
+			if (parent->is_in_group("ItemChest")) {
+				ItemChest* ic = static_cast<ItemChest*>(parent);
+
+				if (!InteractibleInFocus || inter != InteractibleInFocus) {
+					ic->SetTextVisibility(true);
+				}
+
+				if (InteractibleInFocus && inter != InteractibleInFocus) {
+					if (InteractibleInFocus->get_parent() && InteractibleInFocus->get_parent()->is_in_group("ItemChest")) {
+						ItemChest* focIC = static_cast<ItemChest*>(InteractibleInFocus->get_parent());
+
+						focIC->SetTextVisibility(false);
+					}
+				}
+			}
+			else {
+				if (InteractibleInFocus && inter != InteractibleInFocus) {
+					if (InteractibleInFocus->get_parent() && InteractibleInFocus->get_parent()->is_in_group("ItemChest")) {
+						ItemChest* focIC = static_cast<ItemChest*>(InteractibleInFocus->get_parent());
+
+						focIC->SetTextVisibility(false);
+					}
+				}
+			}
+		}
+
+		InteractibleInFocus = inter;
+	}
+	else {
+		if (DroppedGunInFocus) {
+			DroppedGunInFocus->DestroyItemCard();
+		}
+
+		InteractibleInFocus = nullptr;
+		DroppedGunInFocus = nullptr;
+		//PlayerHUD->HideItemCard();
 	}
 }
 
@@ -635,6 +782,36 @@ GunDropped* PlayerController::GetClosestGunDropped() {
 	}
 
 	return DroppedGunsInRadius[shortestIndex];
+}
+
+Interactible* PlayerController::GetClosestInteractible() {
+	if (InteractiblesInRadius.empty()) {
+		return nullptr;
+	}
+
+	if (InteractiblesInRadius.size() == 1) {
+		return InteractiblesInRadius[0];
+	}
+
+	float shortestDist = 100.f;
+	int32_t shortestIndex = 0;
+
+	for (size_t i = 0; i < InteractiblesInRadius.size(); i++) {
+		const Interactible* element = InteractiblesInRadius[i];
+
+		if (!element) {
+			continue;
+		}
+
+		const float dist = ControlledPlayer->get_global_position().distance_to(element->get_global_position());
+
+		if (shortestDist > dist) {
+			shortestDist = dist;
+			shortestIndex = i;
+		}
+	}
+
+	return InteractiblesInRadius[shortestIndex];
 }
 
 void PlayerController::GiveExperience(double exp) {
@@ -676,6 +853,12 @@ double PlayerController::GetExperience() const {
 void PlayerController::LevelUp() {
 	if (ControlledPlayer) {
 		ControlledPlayer->Level++;
+
+		//SetMaxHealth(85 + (15 * ControlledPlayer->Level));
+		ControlledPlayer->MaxHealth = 85 + (15 * ControlledPlayer->Level); // Will be replaced when other factors exist
+		ControlledPlayer->CurrentHealth = ControlledPlayer->MaxHealth; // might be removed later, who knows
+		PlayerHUD->SetHealthMax(ControlledPlayer->MaxHealth);
+		PlayerHUD->UpdateHealthCurrent(ControlledPlayer->CurrentHealth);
 	}
 }
 

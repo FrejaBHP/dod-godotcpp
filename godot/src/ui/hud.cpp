@@ -1,4 +1,5 @@
 #include "ui/hud.h"
+#include "player/playerController.h"
 
 #include <godot_cpp/classes/panel.hpp>
 #include <godot_cpp/classes/style_box_flat.hpp>
@@ -15,9 +16,9 @@ const Color WeaponBarInactiveBorder { 0.54f, 0.5f, 1.0f, 0.5f };
 const Color WeaponBarActiveBorder { 0.74f, 0.7f, 1.0f, 0.5f };
 
 void HUD::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("GetPriItemCard"), &HUD::GetPriItemCard);
-	ClassDB::bind_method(D_METHOD("ShowItemCard"), &HUD::ShowItemCard);
-	ClassDB::bind_method(D_METHOD("HideItemCard"), &HUD::HideItemCard);
+	//ClassDB::bind_method(D_METHOD("GetPriItemCard"), &HUD::GetPriItemCard);
+	//ClassDB::bind_method(D_METHOD("ShowItemCard"), &HUD::ShowItemCard);
+	//ClassDB::bind_method(D_METHOD("HideItemCard"), &HUD::HideItemCard);
 	ClassDB::bind_method(D_METHOD("ClearAmmoDisplay"), &HUD::ClearAmmoDisplay);
 	ClassDB::bind_method(D_METHOD("SetAmmoDisplayValues"), &HUD::SetAmmoDisplayValues);
 }
@@ -27,19 +28,25 @@ HUD::HUD() {
 }
 
 void HUD::_ready() {
-	PriItemCard = get_node<ItemCard>("ItemCard");
+	//PriItemCardPivot = get_node<Node2D>("ItemCardPivot");
+	//PriItemCard = PriItemCardPivot->get_node<ItemCard>("ItemCard");
 
 	ExperienceLevel = get_node<Control>("ExperienceLevel");
 	ExpBar = ExperienceLevel->get_node<TextureProgressBar>("ExperienceBar");
-	LevelLabel = ExperienceLevel->get_node<Label>("LevelLabel");
+	LevelLabel = ExperienceLevel->get_node<Label>("MarginContainer/LevelLabel");
+
+	HealthBar = get_node<TextureProgressBar>("PlayerHealth/HealthBar");
+	HealthLabel = HealthBar->get_node<Label>("LabelMargin/Label");
+	ShieldBar = get_node<TextureProgressBar>("PlayerHealth/Control/ShieldBar");
+	ShieldLabel = ShieldBar->get_node<Label>("LabelMargin/Label");
 
 	WeaponBar = get_node<Control>("SelectedWeaponBar");
 
 	CurAmmoBar = get_node<TextureProgressBar>("PlayerHUDAmmo/AmmoRatioBar");
-	CurAmmoLabel = CurAmmoBar->get_node<Label>("AmmoCurrent");
-	CurAmmoTypeRect = get_node<TextureRect>("PlayerHUDAmmo/AmmoTypeIcon");
+	CurAmmoLabel = CurAmmoBar->get_node<Label>("LabelMargin/Label");
+	CurAmmoTypeRect = get_node<TextureRect>("PlayerHUDAmmo/HBoxContainer/IconMargin/AmmoTypeIcon");
 	CurAmmoTypeAtlas = static_cast<AtlasTexture*>(CurAmmoTypeRect->get_texture().ptr());
-	ReserveAmmoLabel = get_node<Label>("PlayerHUDAmmo/Margin/AmmoReserve");
+	ReserveAmmoLabel = get_node<Label>("PlayerHUDAmmo/HBoxContainer/LabelMargin/AmmoReserve");
 }
 
 void HUD::_process(double delta) {
@@ -48,6 +55,16 @@ void HUD::_process(double delta) {
 
 void HUD::_physics_process(double delta) {
 
+}
+
+void HUD::BindController(PlayerController* pc) {
+	PController = pc;
+}
+
+/*
+void HUD::MovePriItemCardPivot(Vector2 pos) {
+	pos.y += get_viewport_rect().get_size().y;
+	PriItemCardPivot->set_global_position(pos);
 }
 
 ItemCard* HUD::GetPriItemCard() const {
@@ -60,6 +77,57 @@ void HUD::ShowItemCard() {
 
 void HUD::HideItemCard() {
 	PriItemCard->set_visible(false);
+}
+*/
+
+void HUD::ShowShieldBar() {
+	IsShieldBarVisible = true;
+	ShieldBar->set_visible(true);
+}
+
+void HUD::HideShieldBar() {
+	IsShieldBarVisible = false;
+	ShieldBar->set_visible(false);
+}
+
+void HUD::SetHealthMax(double max) {
+	StoredMaxHealth = max;
+}
+
+void HUD::SetShieldMax(double max) {
+	StoredMaxShield = max;
+}
+
+void HUD::UpdateHealthCurrent(double current) {
+	if (StoredMaxHealth == 0.0) {
+		print_error("UPDATE HEALTH: Trying to divide by 0");
+		return;
+	}
+
+	if (current > StoredMaxHealth) {
+		HealthBar->set_value(1.0);
+	}
+	else {
+		HealthBar->set_value(current / StoredMaxHealth);
+	}
+
+	HealthLabel->set_text(vformat("%0.f / %0.f", current, StoredMaxHealth));
+}
+
+void HUD::UpdateShieldCurrent(double current) {
+	if (StoredMaxShield == 0.0) {
+		print_error("UPDATE SHIELD: Trying to divide by 0");
+		return;
+	}
+
+	if (current > StoredMaxShield) {
+		ShieldBar->set_value(1.0);
+	}
+	else {
+		ShieldBar->set_value(current / StoredMaxShield);
+	}
+
+	ShieldLabel->set_text(vformat("%0.f / %0.f", current, StoredMaxShield));
 }
 
 void HUD::SetHighlightedWeaponSlot(int slot) {

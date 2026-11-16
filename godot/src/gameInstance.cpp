@@ -6,12 +6,14 @@
 #include <godot_cpp/classes/marker2d.hpp>
 #include <godot_cpp/classes/path2d.hpp>
 #include <godot_cpp/classes/path_follow2d.hpp>
+#include <godot_cpp/classes/theme.hpp>
 
 #include "gameInstance.h"
 #include "player/playerChar.h"
 #include "player/playerController.h"
 #include "shared/utility.h"
 #include "world.h"
+#include "runManager.h"
 #include "gun/gun.h"
 
 #include "gun/parts/catalogueMaterials.h"
@@ -25,7 +27,7 @@
 #include "ui/damageText.h"
 #include "pickup/pickupAmmo.h"
 
-#include "enemies/enemyGun.h"
+#include "enemies/enemy.h"
 
 using namespace godot;
 
@@ -37,7 +39,7 @@ void GameInstance::Init() {
 	ResLoader = ResourceLoader::get_singleton();
 }
 
-std::shared_ptr<GunDefinition> GameInstance::GenerateGunDef(int32_t type) {
+std::shared_ptr<GunDefinition> GameInstance::GenerateGunDef(int type, int level) const {
 	std::shared_ptr<GunDefinition> gundef;
 
 	if (type == -1) {
@@ -48,19 +50,21 @@ std::shared_ptr<GunDefinition> GameInstance::GenerateGunDef(int32_t type) {
 		gundef = std::make_shared<GDPistol>();
 	}
 	else if (type == 1) {
-		gundef = std::make_shared<GDSMG>();
-	}
-	else if (type == 2) {
-		gundef = std::make_shared<GDRifle>();
-	}
-	else if (type == 3) {
-		gundef = std::make_shared<GDShotgun>();
-	}
-	else {
 		gundef = std::make_shared<GDRevolver>();
 	}
+	else if (type == 2) {
+		gundef = std::make_shared<GDSMG>();
+	}
+	else if (type == 3) {
+		gundef = std::make_shared<GDRifle>();
+	}
+	else {
+		gundef = std::make_shared<GDShotgun>();
+	}
 
-	int32_t manuIndex = GetRandomInt(0, (int32_t)EManufacturer::COUNT - 1);
+	gundef->Level = level;
+
+	int manuIndex = GetRandomInt(0, (int)EManufacturer::COUNT - 1);
 	EManufacturer manufacturer = (EManufacturer)manuIndex;
 
 	gundef->Material = GetMaterial(manufacturer, -1);
@@ -74,8 +78,8 @@ std::shared_ptr<GunDefinition> GameInstance::GenerateGunDef(int32_t type) {
 	return gundef;
 }
 
-Gun* GameInstance::GenerateNakedGun(int32_t type) {
-	std::shared_ptr<GunDefinition> gundef = GenerateGunDef(type);
+Gun* GameInstance::GenerateNakedGun(int type, int level) {
+	std::shared_ptr<GunDefinition> gundef = GenerateGunDef(type, level);
 
 	Ref<PackedScene> gunScene = ResLoader->load("res://gun.tscn");
 
@@ -115,18 +119,25 @@ Gun* GameInstance::GenerateStarterPistol() {
 	return nullptr;
 }
 
-void GameInstance::GenerateAndDropGun(int32_t type) {
-	std::shared_ptr<GunDefinition> gundef = GenerateGunDef(type);
+void GameInstance::GenerateAndDropGun(int type, int level, Node2D* parent) {
+	std::shared_ptr<GunDefinition> gundef = GenerateGunDef(type, level);
 
 	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");
 
 	if (droppedScene->can_instantiate()) {
-		if (GWorld && GPlayer) {
+		if (GWorld && GWorld->GetCurrentRoom() && GPlayer) {
 			GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
-			GWorld->add_child(dGun);
-			dGun->SetupDroppedGun(gundef);
 
-			dGun->set_global_position(GPlayer->get_global_position());
+			if (parent) {
+				parent->add_child(dGun);
+				dGun->SetupDroppedGun(gundef);
+				dGun->set_global_position(parent->get_global_position());
+			}
+			else {
+				GWorld->GetCurrentRoom()->GetItemsNode()->add_child(dGun);
+				dGun->SetupDroppedGun(gundef);
+				dGun->set_global_position(GPlayer->get_global_position());
+			}
 		}
 	}
 }
@@ -137,9 +148,9 @@ void GameInstance::CopyEquippedGunToDrop(Gun* gun, Vector2 position) {
 	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");
 
 	if (droppedScene->can_instantiate()) {
-		if (GWorld && GPlayer) {
+		if (GWorld && GWorld->GetCurrentRoom() && GPlayer) {
 			GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
-			GWorld->add_child(dGun);
+			GWorld->GetCurrentRoom()->GetItemsNode()->add_child(dGun);
 			dGun->SetupDroppedGun(gun->GunDef);
 
 			dGun->set_global_position(position);
@@ -177,7 +188,7 @@ void GameInstance::TestSpawnEnemy() {
 	Ref<PackedScene> egScene = ResLoader->load("res://enemy_gun.tscn");
 
 	if (egScene->can_instantiate()) {
-		EnemyGun* eg = static_cast<EnemyGun*>(egScene->instantiate());
+		Enemy* eg = static_cast<Enemy*>(egScene->instantiate());
 		GWorld->add_child(eg);
 	}
 }
@@ -214,13 +225,15 @@ void GameInstance::SpawnDamageText(Vector2 position, double damage, EElement ele
 	dt->set_global_position(position);
 	dt->SetDamageValue(damage);
 	dt->SetTextColour(GetElementColour(element));
+	dt->set_theme(ResLoader->load("res://assets/themes/pixelFont.tres"));
+	//dt->add_theme_font_size_override("font_size", 24);
 	dt->Start();
 }
 
-void GameInstance::EnemyDeath(EnemyGun* enemy) {
+void GameInstance::EnemyDeath(Enemy* enemy) {
 	if (enemy) {
 		if (GPlayer) {
-			GPlayer->GetController()->GiveExperience(enemy->EXPBounty);
+			GPlayer->GetController()->GiveExperience(enemy->GetEXPBounty());
 		}
 
 		int ammoRoll = GetRandomInt(0, 3);
@@ -239,14 +252,15 @@ void GameInstance::SpawnRandomAmmoPickup(Vector2 position) {
 
 	if (ammoScene->can_instantiate()) {
 		AmmoPickup* ammo = static_cast<AmmoPickup*>(ammoScene->instantiate());
-		GWorld->add_child(ammo);
+		GWorld->GetCurrentRoom()->GetItemsNode()->add_child(ammo);
 		ammo->SetAmmoType(GetRandomInt(0, 6));
 		ammo->set_global_position(position);
 	}
 }
 
-void GameInstance::RegisterWorld(World* world) {
+void GameInstance::RegisterWorld(World* world, RunManager* rm) {
 	GWorld = world;
+	GRunManager = rm;
 
 	// TEMP
 	GPlayer->GetController()->GetStartGun();
@@ -256,11 +270,15 @@ void GameInstance::RegisterPlayer(Player* player) {
 	GPlayer = player;
 }
 
-World* GameInstance::GetWorld() {
+World* const GameInstance::GetWorld() const {
 	return GWorld;
 }
 
-Player* GameInstance::GetPlayer() {
+RunManager* const GameInstance::GetRunManager() const {
+	return GRunManager;
+}
+
+Player* const GameInstance::GetPlayer() const {
 	return GPlayer;
 }
 

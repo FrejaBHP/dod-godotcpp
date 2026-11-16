@@ -20,6 +20,9 @@ void Player::_bind_methods() {
 Player::Player() {
 	MaxSpeed = 200.f;
 
+	MaxHealth = 85 + (15 * Level);
+	CurrentHealth = MaxHealth;
+
 	for (size_t i = 0; i < PlayerNumGunSlots; i++) {
 		GunSlots[i] = nullptr;
 	}

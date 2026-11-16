@@ -5,13 +5,14 @@
 using namespace godot;
 
 void Character::_bind_methods() {
-	ADD_SIGNAL(MethodInfo("inc_hit_projectile", PropertyInfo(Variant::OBJECT, "proj")));
-	//ADD_SIGNAL(MethodInfo("inc_hit_projectile"));
-
+	ClassDB::bind_method(D_METHOD("CharSetMaxSpeed", "p_MaxSpeed"), &Character::SetMaxSpeed);
 	ClassDB::bind_method(D_METHOD("CharGetMaxSpeed"), &Character::GetMaxSpeed);
 	ClassDB::bind_method(D_METHOD("CharApplyMovement"), &Character::ApplyMovement);
 	ClassDB::bind_method(D_METHOD("CharDie"), &Character::Die);
 	ClassDB::bind_method(D_METHOD("CharOnDeath"), &Character::OnDeath);
+
+	ADD_SIGNAL(MethodInfo("inc_hit_projectile", PropertyInfo(Variant::OBJECT, "proj")));
+	//ADD_SIGNAL(MethodInfo("inc_hit_projectile"));
 }
 
 void Character::_ready() {
@@ -40,6 +41,10 @@ void Character::Die() {
 
 void Character::OnDeath() {
 
+}
+
+void Character::SetMaxSpeed(const double newMax) {
+	MaxSpeed = newMax;
 }
 
 double Character::GetMaxSpeed() const {

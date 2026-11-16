@@ -119,10 +119,12 @@ void GunDefinition::FinaliseGun() {
 	GunName = appliedPrefix + " " + appliedTitle;
 
 	MetaMagAmmo = MagSize;
+
+	GunRarity = GetItemRarity(RarityScore);
 }
 
 void GunDefinition::CalculateStats() {
-	Damage = ((GetBaseScaled(Level) + AttrBonuses[EAttributeType::Damage].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::Damage].Scale)) * DamageModifier;
+	Damage = ((GetWeaponBaseDamage(Level) + AttrBonuses[EAttributeType::Damage].Flat) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::Damage].Scale)) * DamageModifier;
 
 	double fireRate = (1000 / BaseFireTime) * Attribute::GetAdjustedScale(AttrBonuses[EAttributeType::FireRate].Scale);
 	FireTime = (1 / fireRate) * 1000;

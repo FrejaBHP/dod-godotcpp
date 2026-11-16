@@ -29,7 +29,7 @@ public:
 	EGunType GunType { EGunType::None };
 	EGunSubType GunSubType { EGunSubType::None };
 	EAmmoType GunAmmoType { EAmmoType::Pistol };
-	EGunRarity GunRarity { EGunRarity::Common };
+	EItemRarity GunRarity { EItemRarity::Common };
 	EFireMode FireMode { EFireMode::Automatic };
 
 	std::string GunName { "" };

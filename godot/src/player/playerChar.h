@@ -41,6 +41,9 @@ protected:
 	PlayerController* Controller = nullptr;
 	Gun* GunSlots[PlayerNumGunSlots];
 
+	double MaxHealth { 0.0 };
+	double CurrentHealth { 0.0 };
+
 	double Experience { 0.0 };
 
 	static void _bind_methods();

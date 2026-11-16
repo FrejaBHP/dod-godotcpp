@@ -4,13 +4,13 @@
 
 #include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/navigation_agent2d.hpp>
-#include "combat/healthComponent.h"
 
 using namespace godot;
 
 class Character;
 class Gun;
 class EnemyAIComponent;
+class HealthComponent;
 
 class EnemyController : public CharacterController {
 	GDCLASS(EnemyController, CharacterController)

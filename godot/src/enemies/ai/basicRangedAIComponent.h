@@ -9,7 +9,11 @@
 using namespace std::chrono;
 
 class EnemyController;
-class EnemyGun;
+class Enemy;
+
+constexpr double PrefBaseRangeFar { 768.0 };
+constexpr double PrefBaseRangeNormal { 384.0 };
+constexpr double PrefBaseRangeNear { 192.0 };
 
 class BasicRangedEAIComponent : public EnemyAIComponent {
 	GDCLASS(BasicRangedEAIComponent, EnemyAIComponent)
@@ -22,7 +26,7 @@ public:
 	void RegisterGun();
 
 protected:
-	EnemyGun* CtrlEGun = nullptr; // For ease of access to derived class and to prevent repeated casting. Might be removed or changed later
+	Enemy* CtrlEGun = nullptr; // For ease of access to derived class and to prevent repeated casting. Might be removed or changed later
 
 	/*
 		Shooting behaviour stuff for guns
@@ -40,6 +44,8 @@ protected:
 	*/
 	steady_clock::time_point NextShot;
 	bool IsNextShotDelayed { false };
+
+	double PreferredRange { PrefBaseRangeNormal };
 
 	static void _bind_methods();
 

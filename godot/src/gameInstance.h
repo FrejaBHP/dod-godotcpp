@@ -11,9 +11,10 @@
 using namespace godot;
 
 class World;
+class RunManager;
 class Player;
 class Gun;
-class EnemyGun;
+class Enemy;
 
 // https://stackoverflow.com/questions/1008019/how-do-you-implement-the-singleton-design-pattern
 
@@ -29,15 +30,15 @@ public:
 
 	void Init();
 
-	void RegisterWorld(World* world);
+	void RegisterWorld(World* world, RunManager* rm);
 	void RegisterPlayer(Player* player);
-	Gun* GenerateNakedGun(int32_t type);
+	Gun* GenerateNakedGun(int type, int level);
 	Gun* GenerateStarterPistol();
 	void CopyEquippedGunToDrop(Gun* gun, Vector2 position);
 	Gun* CopyDroppedGunToEquip(GunDropped* dgun);
 
-	std::shared_ptr<GunDefinition> GenerateGunDef(int32_t type);
-	void GenerateAndDropGun(int32_t type);
+	std::shared_ptr<GunDefinition> GenerateGunDef(int type, int level) const;
+	void GenerateAndDropGun(int type, int level, Node2D* parent);
 
 	void TestSpawnEnemy();
 	void TestSpawnWave(int num);
@@ -47,18 +48,20 @@ public:
 
 	void SpawnDamageText(Vector2 position, double damage, EElement element);
 
-	void EnemyDeath(EnemyGun* enemy);
+	void EnemyDeath(Enemy* enemy);
 	void SpawnRandomAmmoPickup(Vector2 position);
 
-	World* GetWorld();
-	Player* GetPlayer();
+	World* const GetWorld() const;
+	RunManager* const GetRunManager() const;
+	Player* const GetPlayer() const;
 
 protected:
-	World* GWorld = nullptr;
-	Player* GPlayer = nullptr;
-	ResourceLoader* ResLoader = nullptr;
-
 	bool HasBeenInitialised { false };
+
+	World* GWorld { nullptr };
+	RunManager* GRunManager { nullptr };
+	Player* GPlayer { nullptr };
+	ResourceLoader* ResLoader { nullptr };
 
 private:
 	GameInstance() {}

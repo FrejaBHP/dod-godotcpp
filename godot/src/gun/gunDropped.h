@@ -2,7 +2,9 @@
 
 #include <godot_cpp/classes/node2d.hpp>
 #include <godot_cpp/classes/sprite2d.hpp>
-#include <godot_cpp/classes/area2d.hpp>
+//#include <godot_cpp/classes/area2d.hpp>
+
+#include "interactible/interactible.h"
 #include "gun/gunDefinition.h"
 
 using namespace godot;
@@ -14,17 +16,20 @@ public:
 	GunDropped();
 	~GunDropped() = default;
 
+	std::shared_ptr<GunDefinition> GunDef { nullptr };
+
+	Sprite2D* Sprite { nullptr };
+	Node2D* ItemCardPivot { nullptr };
+	Interactible* InteractibleArea { nullptr };
+
+	bool CanBePickedUp;
+
 	void _ready() override;
 	void _physics_process(double delta) override;
 
 	virtual void SetupDroppedGun(std::shared_ptr<GunDefinition> gundef);
-
-	std::shared_ptr<GunDefinition> GunDef = nullptr;
-
-	Sprite2D* Sprite = nullptr;
-	Area2D* PickupArea = nullptr;
-
-	bool CanBePickedUp;
+	void CreateItemCard();
+	void DestroyItemCard();
 
 protected:
 	static void _bind_methods();

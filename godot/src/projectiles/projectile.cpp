@@ -14,6 +14,9 @@ Projectile::Projectile() {
 }
 
 void Projectile::_ready() {
+	InnerSprite = get_node<Sprite2D>("InnerSprite");
+	OuterSprite = InnerSprite->get_node<Sprite2D>("OuterSprite");
+
 	Timer* timer = get_node<Timer>("Timer");
 	if (timer) {
 		LifeTimer = timer;
@@ -53,6 +56,10 @@ void Projectile::UpdateMasks(EAlignment alignment) {
 	}
 	else if (alignment == EAlignment::Enemies) {
 		set_collision_mask_value(1, true);
+
+		if (OuterSprite) {
+			OuterSprite->set_self_modulate(Color(1.f, 0.f, 0.f, 1.f));
+		}
 	}
 	else {
 		set_collision_mask_value(1, true);

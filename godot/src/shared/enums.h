@@ -120,14 +120,15 @@ enum class EGunSubType {
 	Launcher,
 };
 
-enum class EGunRarity {
+enum class EItemRarity {
 	Inferior,
 	Common,
 	Uncommon,
 	Rare,
 	Epic,
 	SemiLegendary,
-	Legendary
+	Legendary,
+	Pearlescent
 };
 
 enum class EAmmoType {
@@ -139,6 +140,22 @@ enum class EAmmoType {
 	Sniper,
 	Launcher,
 	NONE
+};
+
+
+enum class EInventorySlotType {
+	Inventory,
+	EquipmentWeapon,
+	EquipmentSpell,
+	EquipmentMod
+};
+
+enum class EInventoryItemType {
+	Generic,
+	Consumable,
+	Weapon,
+	Spell,
+	Mod
 };
 
 
@@ -156,4 +173,59 @@ enum class EAIState {
 	Strafe,
 	SeekCover,
 	Reload,
+};
+
+
+
+// Potentially roll these into structs or associate with separate lists containing weights
+enum class ERoomType {
+	Default,
+	Shop,			// Buy items
+	Armoury,		// Contains free(?) weapons
+	Academy,		// Contains free(?) spells [UNIMPLEMENTED]
+	Boss			// Fight the boss! Exclusive to end of floor
+};
+
+enum class ERewardClass {
+	Item,
+	Chest,
+	Room,
+	Equipment,
+	Reversal,
+	Boss
+};
+
+enum class EItemRewardClass {
+	AmmoBox
+};
+
+enum class EChestRewardClass {
+	AmmoCrate,			// low tier reward, contains ammo (duh)
+	EquipmentChest,		// contains anything equippable [UNIMPLEMENTED]
+	WeaponsChest,		// contains any weapon type (gun/melee)
+	GunLocker,			// contains guns [UNIMPLEMENTED]
+	MeleeRack,			// contains melee weapons [UNIMPLEMENTED]
+};
+
+enum class ERoomRewardClass {
+	Shop,
+	Armoury,
+	Academy
+};
+
+enum class EEquipmentRewardClass {
+
+};
+
+enum class EReversalRewardClass {
+	AllPistols,
+	AllRevolvers,
+	AllSMGs,
+	AllARs,
+	AllShotguns,
+	AllSnipers,
+	AllLaunchers,
+	AllShields,
+	AllMelee,
+	AllCasters
 };

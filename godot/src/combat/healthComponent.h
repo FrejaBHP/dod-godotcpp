@@ -8,6 +8,8 @@
 
 using namespace godot;
 
+class CharacterController;
+
 class HealthComponent : public Node2D {
 	GDCLASS(HealthComponent, Node2D)
 
@@ -17,12 +19,15 @@ public:
 	void _ready() override;
 	void _physics_process(double delta) override;
 
+	void InitHealthBars();
+
 	HealthBar* AddHealthBar(double max, EHealthType type);
 	HealthBar* AddHealthBar(double max, double current, EHealthType type);
 
 	void TakeDamage(DamageInfo& di);
 
 protected:
+	CharacterController* Controller { nullptr };
 	VBoxContainer* BarContainer { nullptr };
 
 	double TotalMaxHealth { 0 };

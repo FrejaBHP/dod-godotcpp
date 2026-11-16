@@ -1,5 +1,6 @@
 #include "enemies/enemyController.h"
 #include "enemies/ai/enemyAIComponent.h"
+#include "combat/healthComponent.h"
 #include "character.h"
 #include "gameInstance.h"
 
@@ -8,7 +9,7 @@
 
 //temp
 #include "gun/gun.h"
-#include "enemies/enemyGun.h"
+#include "enemies/enemy.h"
 
 using namespace godot;
 
@@ -142,7 +143,7 @@ void EnemyController::UpdateHealthBar() {
 
 void EnemyController::ApplyCurrentGun() {
 	if (UsesGun) {
-		EnemyGun* eg = static_cast<EnemyGun*>(ControlledChar);
+		Enemy* eg = static_cast<Enemy*>(ControlledChar);
 		Gun* gun = eg->CurrentGun;
 
 		if (gun) {
@@ -172,7 +173,7 @@ void EnemyController::ApplyRecoil() {
 
 void EnemyController::OnGunFired() {
 	CharacterController::OnGunFired();
-	EnemyGun* eg = static_cast<EnemyGun*>(ControlledChar);
+	Enemy* eg = static_cast<Enemy*>(ControlledChar);
 
 	emit_signal("gun_fired_aic", eg->CurrentGun->GunDef->FireTime / eg->FireRateMod);
 }
