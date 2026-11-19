@@ -204,6 +204,24 @@ godot::Color GetHealthColour(EHealthType type) {
 	return healthColour;
 }
 
+godot::Ref<godot::Texture2D> GetManufacturerIcon(EManufacturer manufacturer) {
+	switch (manufacturer) {
+		case EManufacturer::Weaver:
+			return godot::ResourceLoader::get_singleton()->load("res://assets/interface/icon_manu_weaver.png");
+
+		case EManufacturer::Mars:
+		case EManufacturer::Prism:
+		case EManufacturer::Bozboz:
+		case EManufacturer::Smitherson:
+		case EManufacturer::Violet:
+		case EManufacturer::Prometheus:
+		case EManufacturer::Bjorn:
+
+		default:
+			return nullptr;
+	}
+}
+
 godot::String GetManufacturerName(EManufacturer manufacturer) {
 	switch (manufacturer) {
 		case EManufacturer::Mars:

@@ -15,6 +15,8 @@
 #include "world.h"
 #include "runManager.h"
 #include "gun/gun.h"
+#include "items/inventoryItem.h"
+#include "items/invItemGun.h"
 
 #include "gun/parts/catalogueMaterials.h"
 #include "gun/parts/catalogueElements.h"
@@ -119,6 +121,29 @@ Gun* GameInstance::GenerateStarterPistol() {
 	return nullptr;
 }
 
+InventoryItem* GameInstance::GenerateStarterPistolItem() {
+	std::shared_ptr<GDPistol> gundef = std::make_shared<GDPistol>();
+
+	gundef->Material = GetMaterial(EManufacturer::Mars, 0);
+	gundef->Manufacturer = gundef->Material->Manufacturer;
+
+	gundef->Element = GetElementOfType(EElementCompType::None);
+
+	gundef->AssembleStarterPistol();
+	gundef->FinaliseGun();
+
+	Ref<PackedScene> igunScene = ResourceLoader::get_singleton()->load("res://scenes/ui/inventory_item_gun.tscn");
+
+	if (igunScene->can_instantiate()) {
+		ItemGun* newGun = static_cast<ItemGun*>(igunScene->instantiate());
+		newGun->GunDef = gundef;
+
+		return newGun;
+	}
+
+	return nullptr;
+}
+
 void GameInstance::GenerateAndDropGun(int type, int level, Node2D* parent) {
 	std::shared_ptr<GunDefinition> gundef = GenerateGunDef(type, level);
 
@@ -176,6 +201,52 @@ Gun* GameInstance::CopyDroppedGunToEquip(GunDropped* dgun) {
 	print_error("Failed to instantiate Gun");
 
 	return nullptr;
+}
+
+void GameInstance::CopyItemFromInventoryToDrop(InventoryItem* item, Vector2 position) {
+	Ref<PackedScene> droppedScene;
+
+	if (item->is_in_group("ItemGun")) {
+		ItemGun* igun = static_cast<ItemGun*>(item);
+		droppedScene = ResLoader->load("res://gun_dropped.tscn");
+
+		if (droppedScene->can_instantiate()) {
+			if (GWorld && GWorld->GetCurrentRoom()) {
+				GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
+				GWorld->GetCurrentRoom()->GetItemsNode()->add_child(dGun);
+				dGun->SetupDroppedGun(igun->GunDef);
+
+				dGun->set_global_position(position);
+			}
+		}
+	}
+
+	// Idea is to later make a shared DroppedItem base class, and then setting a reference to that and dropping it correctly somehow
+	/*
+	if (droppedScene->can_instantiate()) {
+		if (GWorld && GWorld->GetCurrentRoom()) {
+			GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
+			GWorld->GetCurrentRoom()->GetItemsNode()->add_child(dGun);
+			dGun->SetupDroppedGun(igun->GunDef);
+
+			dGun->set_global_position(position);
+		}
+	}
+	*/
+}
+
+void GameInstance::CopyGunFromInventoryToDrop(ItemGun* igun, Vector2 position) {
+	Ref<PackedScene> droppedScene = ResLoader->load("res://gun_dropped.tscn");
+
+	if (droppedScene->can_instantiate()) {
+		if (GWorld && GWorld->GetCurrentRoom()) {
+			GunDropped* dGun = static_cast<GunDropped*>(droppedScene->instantiate());
+			GWorld->GetCurrentRoom()->GetItemsNode()->add_child(dGun);
+			dGun->SetupDroppedGun(igun->GunDef);
+
+			dGun->set_global_position(position);
+		}
+	}
 }
 
 void GameInstance::TestSpawnEnemy() {
@@ -263,7 +334,7 @@ void GameInstance::RegisterWorld(World* world, RunManager* rm) {
 	GRunManager = rm;
 
 	// TEMP
-	GPlayer->GetController()->GetStartGun();
+	GPlayer->GetController()->GiveStartGun();
 }
 
 void GameInstance::RegisterPlayer(Player* player) {

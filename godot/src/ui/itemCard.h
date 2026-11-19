@@ -32,6 +32,7 @@ protected:
 	Label* LName { nullptr };
 	RichTextLabel* LGunType { nullptr };
 	Label* LManufacturer { nullptr };
+	TextureRect* ManufacturerTexture { nullptr };
 	std::vector<HBoxContainer*> CardRows;
 
 	static void _bind_methods();

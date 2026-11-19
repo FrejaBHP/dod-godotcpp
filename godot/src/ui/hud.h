@@ -6,7 +6,9 @@
 #include <godot_cpp/classes/atlas_texture.hpp>
 #include <godot_cpp/classes/texture_progress_bar.hpp>
 #include <godot_cpp/classes/node2d.hpp>
+#include <godot_cpp/classes/viewport.hpp>
 #include "ui/itemCard.h"
+#include "ui/inventory.h"
 #include "shared/enums.h"
 
 using namespace godot;
@@ -26,6 +28,8 @@ public:
 
 	void BindController(PlayerController* pc);
 
+	void ToggleInventory();
+
 	void SetHealthMax(double max);
 	void SetShieldMax(double max);
 	void UpdateHealthCurrent(double current);
@@ -40,8 +44,13 @@ public:
 	void UpdateEXP(double xp, double prevThresh, double nextThresh);
 	void UpdateLevel(int level);
 
+	Inventory* const GetInventory() const;
+
 	void ShowShieldBar();
 	void HideShieldBar();
+
+	void CreateHeldItemPreview(TextureRect* tr);
+	void DestroyHeldItemPreview();
 
 	//void ShowItemCard();
 	//void HideItemCard();
@@ -52,8 +61,7 @@ public:
 protected:
 	PlayerController* PController { nullptr };
 
-	//Node2D* PriItemCardPivot { nullptr };
-	//ItemCard* PriItemCard { nullptr };
+	Inventory* PInventory { nullptr };
 
 	Control* ExperienceLevel { nullptr };
 	TextureProgressBar* ExpBar { nullptr };
@@ -71,6 +79,8 @@ protected:
 	TextureProgressBar* CurAmmoBar { nullptr };
 	TextureRect* CurAmmoTypeRect { nullptr };
 	AtlasTexture* CurAmmoTypeAtlas { nullptr };
+
+	TextureRect* HeldItemPreview { nullptr };
 
 	bool IsShieldBarVisible { false };
 

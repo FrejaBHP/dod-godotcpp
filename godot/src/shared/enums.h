@@ -146,6 +146,7 @@ enum class EAmmoType {
 enum class EInventorySlotType {
 	Inventory,
 	EquipmentWeapon,
+	EquipmentShield,
 	EquipmentSpell,
 	EquipmentMod
 };
@@ -154,6 +155,7 @@ enum class EInventoryItemType {
 	Generic,
 	Consumable,
 	Weapon,
+	Shield,
 	Spell,
 	Mod
 };

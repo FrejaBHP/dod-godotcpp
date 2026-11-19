@@ -113,6 +113,10 @@ void PlayerController::_unhandled_input(const Ref<InputEvent>& p_event) {
 			Interact();
 		}
 
+		if (p_event.ptr()->is_action_pressed("inventory")) {
+			PlayerHUD->ToggleInventory();
+		}
+
 		if (p_event.ptr()->is_action_pressed("debug0")) {
 			GameInstance::GetInstance().GenerateAndDropGun(-1, GameInstance::GetInstance().GetRunManager()->CurrentAreaLevel, nullptr);
 		}
@@ -122,7 +126,7 @@ void PlayerController::_unhandled_input(const Ref<InputEvent>& p_event) {
 				Gun* gun = GetPlayer()->GetGunInSlot(i);
 
 				if (gun) {
-					print_line((int32_t)gun->GunDef.use_count());
+					print_line(vformat("Slot %d: %s, RefCount: %d", i, gun->GunDef->GunName.c_str(), (int)gun->GunDef.use_count()));
 				}
 			}
 
@@ -171,7 +175,14 @@ void PlayerController::_process(double delta) {
 	if (PlayerCrosshair) {
 		Vector2 chPosition = mousePosition - screenCentre;
 		PlayerCrosshair->set_position(chPosition);
-		PlayerCrosshair->UpdateCrosshairSpreadTarget(ControlledPlayer->Inaccuracy + ControlledPlayer->GetCurrentGun()->GunDef->Spread);
+
+		if (ControlledPlayer->GetCurrentGun()) {
+			PlayerCrosshair->UpdateCrosshairSpreadTarget(ControlledPlayer->Inaccuracy + ControlledPlayer->GetCurrentGun()->GunDef->Spread);
+		}
+		else {
+			PlayerCrosshair->UpdateCrosshairSpreadTarget(1.);
+		}
+
 		//ControlledPlayer->look_at(PlayerCrosshair->get_global_position());
 		//PlayerCrosshair->set_global_rotation(0.f);
 	}
@@ -209,74 +220,6 @@ Vector2 PlayerController::ProcessMovementInput() {
 	return movementInput;
 }
 
-void PlayerController::OnHitByProjectile(Projectile* proj) {
-	TakeDamage(proj->DmgInfo);
-}
-
-// Health kan laves om til et component med sit eget system. Placeholder her
-void PlayerController::TakeDamage(DamageInfo& di) {
-	// No shields yet
-
-	ControlledPlayer->CurrentHealth -= di.GetTotalDamage();
-	PlayerHUD->UpdateHealthCurrent(ControlledPlayer->CurrentHealth);
-}
-
-void PlayerController::SwitchGun(int32_t slot) {
-	if (PlayerNumGunSlots > slot && slot >= 0) {
-		if (IsReloading) {
-			Gun* gun = ControlledPlayer->GetCurrentGun();
-			gun->ReloadTimer->stop();
-			GunReloadEnd();
-		}
-		ControlledPlayer->SwitchToGunInSlot(slot);
-	}
-}
-
-void PlayerController::Interact() {
-	if (InteractibleInFocus) {
-		Node* parent = InteractibleInFocus->get_parent();
-
-		if (parent) {
-			if (parent->is_in_group("GunDropped")) {
-				GunDropped* dgun = static_cast<GunDropped*>(parent);
-
-				if (dgun->CanBePickedUp) {
-					if (PlayerNumGunSlots > NumEquippedGuns) {
-						PickUpGunInSlot(NumEquippedGuns);
-						NumEquippedGuns++;
-					}
-					else {
-						Gun* curGun = GetPlayer()->GetCurrentGun();
-
-						if (curGun) {
-							SwapGunOnGround();
-						}
-					}
-				}
-			}
-			else {
-				InteractibleInFocus->Activate();
-			}
-		}
-	}
-
-	/*
-	if (DroppedGunInFocus && DroppedGunInFocus->CanBePickedUp) {
-		if (PlayerNumGunSlots > NumEquippedGuns) {
-			PickUpGunInSlot(NumEquippedGuns);
-			NumEquippedGuns++;
-		}
-		else {
-			Gun* curGun = GetPlayer()->GetCurrentGun();
-
-			if (curGun) {
-				SwapGunOnGround();
-			}
-		}
-	}
-	*/
-}
-
 void PlayerController::SetPlayer(Player* player) {
 	ControlledChar = player;
 	ControlledPlayer = player;
@@ -286,6 +229,9 @@ void PlayerController::SetPlayer(Player* player) {
 		PlayerHUD = hud;
 		PlayerHUD->BindController(this);
 		PlayerHUD->UpdateLevel(ControlledPlayer->Level);
+
+		PlayerHUD->GetInventory()->connect("gun_equipped", callable_mp(this, &PlayerController::OnGunEquipped));
+		PlayerHUD->GetInventory()->connect("gun_unequipped", callable_mp(this, &PlayerController::OnGunUnequipped));
 	}
 
 	Crosshair* crosshair = player->get_node<Crosshair>("VisualNodes/Crosshair");
@@ -354,6 +300,158 @@ void PlayerController::SetPlayer(Player* player) {
 	PlayerHUD->UpdateHealthCurrent(ControlledPlayer->CurrentHealth);
 }
 
+void PlayerController::OnHitByProjectile(Projectile* proj) {
+	TakeDamage(proj->DmgInfo);
+}
+
+// Health kan laves om til et component med sit eget system. Placeholder her
+void PlayerController::TakeDamage(DamageInfo& di) {
+	// No shields yet
+
+	ControlledPlayer->CurrentHealth -= di.GetTotalDamage();
+	PlayerHUD->UpdateHealthCurrent(ControlledPlayer->CurrentHealth);
+}
+
+void PlayerController::OnGunEquipped(ItemGun* itemGun, int slot) {
+	Ref<PackedScene> gunScene = ResourceLoader::get_singleton()->load("res://gun.tscn");
+
+	if (gunScene->can_instantiate()) {
+		if (ControlledPlayer) {
+			Gun* newGun = static_cast<Gun*>(gunScene->instantiate());
+			newGun->BuildGun(itemGun->GunDef);
+			newGun->MagAmmo = newGun->GunDef->MetaMagAmmo;
+			ControlledPlayer->add_child(newGun);
+
+			if (ControlledPlayer->GetGunInSlot(slot)) {
+				Gun* oldGun = ControlledPlayer->GetGunInSlot(slot);
+				oldGun->GunDef->MetaMagAmmo = oldGun->MagAmmo;
+
+				if (IsReloading) {
+					oldGun->ReloadTimer->stop();
+					GunReloadEnd();
+				}
+
+				BindGun(newGun);
+				ControlledPlayer->SetGunInSlot(slot, newGun);
+
+				oldGun->FreeGun();
+			}
+			else {
+				BindGun(newGun);
+				ControlledPlayer->SetGunInSlot(slot, newGun);
+			}
+
+			if (slot == CurrentGunSlot) {
+				ControlledPlayer->SwitchToGunInSlot(slot, false);
+			}
+		}
+	}
+}
+
+void PlayerController::OnGunUnequipped(int slot) {
+	if (ControlledPlayer) {
+		Gun* gun = ControlledPlayer->GetGunInSlot(slot);
+
+		if (gun) {
+			if (IsReloading) {
+				gun->ReloadTimer->stop();
+				GunReloadEnd();
+			}
+
+			gun->GunDef->MetaMagAmmo = gun->MagAmmo;
+
+			ControlledPlayer->SetGunInSlot(slot, nullptr);
+
+			if (ControlledPlayer->GetCurrentGun() == gun) {
+				ControlledPlayer->SwitchToGunInSlot(slot, true);
+			}
+
+			gun->FreeGun();
+		}
+		else {
+			print_error(vformat("No gun in slot %d to unequip!", slot));
+		}
+	}
+}
+
+void PlayerController::SwitchGun(int32_t slot) {
+	if (PlayerNumGunSlots > slot && slot >= 0) {
+		if (IsReloading) {
+			Gun* gun = ControlledPlayer->GetCurrentGun();
+			gun->ReloadTimer->stop();
+			GunReloadEnd();
+		}
+		ControlledPlayer->SwitchToGunInSlot(slot, false);
+	}
+}
+
+void PlayerController::Interact() {
+	if (InteractibleInFocus) {
+		Node* parent = InteractibleInFocus->get_parent();
+
+		if (parent) {
+			if (parent->is_in_group("GunDropped")) {
+				GunDropped* dgun = static_cast<GunDropped*>(parent);
+
+				if (dgun->CanBePickedUp) {
+					/*
+					if (PlayerNumGunSlots > NumEquippedGuns) {
+						PickUpGunInSlot(NumEquippedGuns);
+						NumEquippedGuns++;
+					}
+					else {
+						Gun* curGun = GetPlayer()->GetCurrentGun();
+
+						if (curGun) {
+							SwapGunOnGround();
+						}
+					}
+					*/
+
+					Ref<PackedScene> igunScene = ResourceLoader::get_singleton()->load("res://scenes/ui/inventory_item_gun.tscn");
+
+					if (igunScene->can_instantiate()) {
+						ItemGun* itemGun = static_cast<ItemGun*>(igunScene->instantiate());
+						itemGun->GunDef = dgun->GunDef;
+
+						int availableSlot;
+						if (PlayerHUD->GetInventory()->CanAddItem(availableSlot)) {
+							PlayerHUD->GetInventory()->AddItem(itemGun, availableSlot);
+						}
+
+						DroppedGunInFocus->CanBePickedUp = false;
+						DroppedGunInFocus->InteractibleArea->set_monitorable(false);
+						DroppedGunInFocus->queue_free();
+						DroppedGunInFocus = nullptr;
+					}
+					else {
+						print_error("fuck");
+					}
+				}
+			}
+			else {
+				InteractibleInFocus->Activate();
+			}
+		}
+	}
+
+	/*
+	if (DroppedGunInFocus && DroppedGunInFocus->CanBePickedUp) {
+		if (PlayerNumGunSlots > NumEquippedGuns) {
+			PickUpGunInSlot(NumEquippedGuns);
+			NumEquippedGuns++;
+		}
+		else {
+			Gun* curGun = GetPlayer()->GetCurrentGun();
+
+			if (curGun) {
+				SwapGunOnGround();
+			}
+		}
+	}
+	*/
+}
+
 Player* PlayerController::GetPlayer() const {
 	return ControlledPlayer;
 }
@@ -371,21 +469,24 @@ Node2D* PlayerController::GetCrosshair() const {
 void PlayerController::SetCurrentGunSlot(int32_t slot) {
 	CurrentGunSlot = slot;
 	ApplyCurrentGun();
+
+	if (ControlledPlayer->GetCurrentGun()) {
+		PlayerHUD->SetHighlightedWeaponSlot(slot);
+	}
+	else {
+		PlayerHUD->SetHighlightedWeaponSlot(-1);
+	}
+
 	UpdateAmmoLabel();
-	PlayerHUD->SetHighlightedWeaponSlot(slot);
 }
 
 int32_t PlayerController::GetCurrentGunSlot() const {
 	return CurrentGunSlot;
 }
 
-void PlayerController::GetStartGun() {
-	Gun* newGun = GameInstance::GetInstance().GenerateStarterPistol();
-	BindGun(newGun);
-	NumEquippedGuns++;
-
-	ControlledPlayer->SetGunInSlot(0, newGun);
-	ControlledPlayer->SwitchToGunInSlot(0);
+void PlayerController::GiveStartGun() {
+	ItemGun* newGun = (ItemGun*)GameInstance::GetInstance().GenerateStarterPistolItem();
+	PlayerHUD->GetInventory()->SetItemInSlot(newGun, EInventorySlotType::EquipmentWeapon, 0);
 }
 
 void PlayerController::PickUpGunInSlot(int32_t slot) {
@@ -401,7 +502,7 @@ void PlayerController::PickUpGunInSlot(int32_t slot) {
 	ControlledPlayer->SetGunInSlot(slot, newGun);
 
 	if (slot == GetCurrentGunSlot()) {
-		ControlledPlayer->SwitchToGunInSlot(GetCurrentGunSlot());
+		ControlledPlayer->SwitchToGunInSlot(GetCurrentGunSlot(), false);
 	}
 }
 
@@ -425,7 +526,7 @@ void PlayerController::SwapGunOnGround() {
 	BindGun(newGun);
 
 	ControlledPlayer->SetGunInSlot(GetCurrentGunSlot(), newGun);
-	ControlledPlayer->SwitchToGunInSlot(GetCurrentGunSlot());
+	ControlledPlayer->SwitchToGunInSlot(GetCurrentGunSlot(), false);
 
 	// Drop gun and clean up gun instance
 	GameInstance::GetInstance().CopyEquippedGunToDrop(oldGun, GetPlayer()->get_global_position());
@@ -481,23 +582,25 @@ void PlayerController::UnbindGun(Gun* gun) {
 void PlayerController::ApplyCurrentGun() {
 	Gun* gun = ControlledPlayer->GetCurrentGun();
 
-	ControlledPlayer->Recoil = gun->GunDef->Recoil;
-	ControlledPlayer->MinInaccuracy = gun->GunDef->MinInaccuracy;
-	ControlledPlayer->MaxInaccuracy = gun->GunDef->MaxInaccuracy;
-	ControlledPlayer->InaccuracyRegen = gun->GunDef->InaccuracyRegen;
-	ControlledPlayer->InaccuracyRegenDelay = gun->GunDef->InaccuracyRegenDelay;
-	ControlledPlayer->Inaccuracy = ControlledPlayer->MinInaccuracy;
-	IsFullyAccurate = true;
+	if (gun) {
+		ControlledPlayer->Recoil = gun->GunDef->Recoil;
+		ControlledPlayer->MinInaccuracy = gun->GunDef->MinInaccuracy;
+		ControlledPlayer->MaxInaccuracy = gun->GunDef->MaxInaccuracy;
+		ControlledPlayer->InaccuracyRegen = gun->GunDef->InaccuracyRegen;
+		ControlledPlayer->InaccuracyRegenDelay = gun->GunDef->InaccuracyRegenDelay;
+		ControlledPlayer->Inaccuracy = ControlledPlayer->MinInaccuracy;
+		IsFullyAccurate = true;
 
-	if (ControlledPlayer->GetCurrentGun()) {
-		PlayerHUD->SetAmmoDisplayType(ControlledPlayer->GetCurrentGun()->GunDef->GunAmmoType);
+		if (ControlledPlayer->GetCurrentGun()) {
+			PlayerHUD->SetAmmoDisplayType(ControlledPlayer->GetCurrentGun()->GunDef->GunAmmoType);
 
-		if (ControlledPlayer->GetCurrentGun()->MagAmmo > *ControlledPlayer->GetCurrentGun()->OwnerReserveAmmo) {
-			ControlledPlayer->GetCurrentGun()->MagAmmo = *ControlledPlayer->GetCurrentGun()->OwnerReserveAmmo;
+			if (ControlledPlayer->GetCurrentGun()->MagAmmo > *ControlledPlayer->GetCurrentGun()->OwnerReserveAmmo) {
+				ControlledPlayer->GetCurrentGun()->MagAmmo = *ControlledPlayer->GetCurrentGun()->OwnerReserveAmmo;
+			}
 		}
 	}
 
-	UpdateGunHeldType(*gun);
+	UpdateHeldGunType(gun);
 }
 
 void PlayerController::GunReloadStart() {
@@ -588,7 +691,6 @@ void PlayerController::PickupAreaEntered(Area2D* area) {
 
 		print_line(vformat("Picked up %d %s ammo!", ammo->GetAmmoCount(), GetAmmoTypeName((EAmmoType)ammo->GetAmmoType())));
 
-		//ammo->Disable();
 		ammo->queue_free();
 
 		UpdateAmmoLabel();
@@ -862,35 +964,46 @@ void PlayerController::LevelUp() {
 	}
 }
 
-void PlayerController::UpdateGunHeldType(const Gun& heldGun) {
+void PlayerController::UpdateHeldGunType(const Gun* heldGun) {
 	if (!GunSprite) {
 		print_error("No gun sprite, aborting changing the atlas sheet");
 		return;
 	}
 
 	Rect2 region { Point2(0, 0), Size2(GunSpriteAtlasStepX, GunSpriteAtlasStepY) };
-	EGunSubType type = heldGun.GunDef->GunSubType;
 
-	switch (type) {
-		case EGunSubType::Repeater:
-		case EGunSubType::MachinePistol:
-			region.set_position(Vector2(0, 0));
-			break;
+	if (heldGun) {
+		EGunSubType type = heldGun->GunDef->GunSubType;
 
-		case EGunSubType::SMG:
-			region.set_position(Vector2(GunSpriteAtlasStepX, 0));
-			break;
+		switch (type) {
+			case EGunSubType::Repeater:
+			case EGunSubType::MachinePistol:
+				region.set_position(Vector2(0, 0));
+				break;
 
-		case EGunSubType::CombatRifle:
-		case EGunSubType::MachineGun:
-			region.set_position(Vector2(GunSpriteAtlasStepX * 2, 0));
-			break;
+			case EGunSubType::SMG:
+				region.set_position(Vector2(GunSpriteAtlasStepX, 0));
+				break;
 
-		default:
-			region.set_position(Vector2(0, 0));
-			break;
+			case EGunSubType::CombatRifle:
+			case EGunSubType::MachineGun:
+				region.set_position(Vector2(GunSpriteAtlasStepX * 2, 0));
+				break;
+
+			default:
+				region.set_position(Vector2(0, 0));
+				break;
+		}
 	}
-
+	else {
+		region.set_position(Vector2(GunSpriteAtlasStepX * 3, 0));
+	}
+	
 	AtlasTexture* atlas = static_cast<AtlasTexture*>(GunSprite->get_texture().ptr());
 	atlas->set_region(region);
 }
+
+void PlayerController::SetCrosshairVisibility(const bool visible) const {
+	GetCrosshair()->set_visible(visible);
+}
+

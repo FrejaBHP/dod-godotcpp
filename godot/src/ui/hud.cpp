@@ -19,6 +19,8 @@ void HUD::_bind_methods() {
 	//ClassDB::bind_method(D_METHOD("GetPriItemCard"), &HUD::GetPriItemCard);
 	//ClassDB::bind_method(D_METHOD("ShowItemCard"), &HUD::ShowItemCard);
 	//ClassDB::bind_method(D_METHOD("HideItemCard"), &HUD::HideItemCard);
+	ClassDB::bind_method(D_METHOD("CreatePreview", "p_TRect"), &HUD::CreateHeldItemPreview);
+	ClassDB::bind_method(D_METHOD("DestroyPreview"), &HUD::DestroyHeldItemPreview);
 	ClassDB::bind_method(D_METHOD("ClearAmmoDisplay"), &HUD::ClearAmmoDisplay);
 	ClassDB::bind_method(D_METHOD("SetAmmoDisplayValues"), &HUD::SetAmmoDisplayValues);
 }
@@ -30,6 +32,10 @@ HUD::HUD() {
 void HUD::_ready() {
 	//PriItemCardPivot = get_node<Node2D>("ItemCardPivot");
 	//PriItemCard = PriItemCardPivot->get_node<ItemCard>("ItemCard");
+
+	PInventory = get_node<Inventory>("Inventory");
+	PInventory->connect("create_preview", callable_mp(this, &HUD::CreateHeldItemPreview));
+	PInventory->connect("destroy_preview", callable_mp(this, &HUD::DestroyHeldItemPreview));
 
 	ExperienceLevel = get_node<Control>("ExperienceLevel");
 	ExpBar = ExperienceLevel->get_node<TextureProgressBar>("ExperienceBar");
@@ -50,7 +56,11 @@ void HUD::_ready() {
 }
 
 void HUD::_process(double delta) {
-
+	if (HeldItemPreview) {
+		const Vector2 mousePosition = get_viewport()->get_mouse_position();
+		const Vector2 offset = HeldItemPreview->get_rect().get_size() / 2;
+		HeldItemPreview->set_global_position(mousePosition - offset);
+	}
 }
 
 void HUD::_physics_process(double delta) {
@@ -59,6 +69,14 @@ void HUD::_physics_process(double delta) {
 
 void HUD::BindController(PlayerController* pc) {
 	PController = pc;
+}
+
+void HUD::ToggleInventory() {
+	PInventory->set_visible(!PInventory->is_visible());
+
+	if (!PInventory->is_visible()) {
+		PInventory->OnInventoryClosed();
+	}
 }
 
 /*
@@ -80,22 +98,27 @@ void HUD::HideItemCard() {
 }
 */
 
-void HUD::ShowShieldBar() {
-	IsShieldBarVisible = true;
-	ShieldBar->set_visible(true);
+void HUD::CreateHeldItemPreview(TextureRect* tr) {
+	// Failsafe
+	if (HeldItemPreview) {
+		HeldItemPreview->queue_free();
+	}
+
+	HeldItemPreview = memnew(TextureRect);
+	add_child(HeldItemPreview);
+	HeldItemPreview->set_custom_minimum_size(tr->get_custom_minimum_size());
+	HeldItemPreview->set_texture_filter(tr->get_texture_filter());
+	HeldItemPreview->set_texture(tr->get_texture());
+	HeldItemPreview->set_mouse_filter(MouseFilter::MOUSE_FILTER_IGNORE);
+	HeldItemPreview->set_stretch_mode(TextureRect::StretchMode::STRETCH_KEEP_ASPECT_CENTERED);
+	HeldItemPreview->set_modulate(Color(1.f, 1.f, 1.f, 0.7f));
 }
 
-void HUD::HideShieldBar() {
-	IsShieldBarVisible = false;
-	ShieldBar->set_visible(false);
-}
-
-void HUD::SetHealthMax(double max) {
-	StoredMaxHealth = max;
-}
-
-void HUD::SetShieldMax(double max) {
-	StoredMaxShield = max;
+void HUD::DestroyHeldItemPreview() {
+	if (HeldItemPreview) {
+		HeldItemPreview->queue_free();
+		HeldItemPreview = nullptr;
+	}
 }
 
 void HUD::UpdateHealthCurrent(double current) {
@@ -152,6 +175,7 @@ void HUD::SetHighlightedWeaponSlot(int slot) {
 void HUD::ClearAmmoDisplay() {
 	CurAmmoLabel->set_text("");
 	ReserveAmmoLabel->set_text("");
+	CurAmmoBar->set_value((double)0);
 	SetAmmoDisplayType(EAmmoType::NONE);
 }
 
@@ -215,4 +239,26 @@ void HUD::UpdateEXP(double xp, double prevThresh, double nextThresh) {
 
 void HUD::UpdateLevel(int level) {
 	LevelLabel->set_text(vformat("Level %d", level));
+}
+
+Inventory* const HUD::GetInventory() const {
+	return PInventory;
+}
+
+void HUD::ShowShieldBar() {
+	IsShieldBarVisible = true;
+	ShieldBar->set_visible(true);
+}
+
+void HUD::HideShieldBar() {
+	IsShieldBarVisible = false;
+	ShieldBar->set_visible(false);
+}
+
+void HUD::SetHealthMax(double max) {
+	StoredMaxHealth = max;
+}
+
+void HUD::SetShieldMax(double max) {
+	StoredMaxShield = max;
 }

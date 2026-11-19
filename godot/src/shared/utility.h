@@ -7,6 +7,7 @@
 
 #include <godot_cpp/variant/color.hpp>
 #include <godot_cpp/classes/audio_stream.hpp>
+#include <godot_cpp/classes/texture2d.hpp>
 
 #include "shared/enums.h"
 #include "shared/attribute.h"
@@ -99,6 +100,8 @@ godot::Ref<godot::AudioStream> GetAudio(godot::String name);
 godot::Color GetElementColour(EElement element);
 
 godot::Color GetHealthColour(EHealthType type);
+
+godot::Ref<godot::Texture2D> GetManufacturerIcon(EManufacturer manufacturer);
 
 godot::String GetManufacturerName(EManufacturer manufacturer);
 godot::String GetGunTypeName(EGunType guntype);

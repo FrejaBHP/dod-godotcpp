@@ -21,6 +21,16 @@ class Gun : public Node2D {
 	GDCLASS(Gun, Node2D)
 
 public:
+	std::shared_ptr<GunDefinition> GunDef { nullptr };
+
+	Character* OwningCharacter { nullptr };
+	int* OwnerReserveAmmo { nullptr };
+	Timer* ReloadTimer { nullptr };
+	AudioStreamPlayer2D* StreamPlayer { nullptr };
+	Ref<AudioStreamRandomizer> StreamRandomiser;
+
+	int32_t MagAmmo { 0 };
+
 	Gun();
 	~Gun() = default;
 
@@ -39,32 +49,23 @@ public:
 
 	steady_clock::time_point GetLastFired() const;
 
-	// Burde måske være en shared ptr
-	std::shared_ptr<GunDefinition> GunDef = nullptr;
-
-	Character* OwningCharacter = nullptr;
-	int* OwnerReserveAmmo = nullptr;
-	Timer* ReloadTimer = nullptr;
-	AudioStreamPlayer2D* StreamPlayer = nullptr;
-	Ref<AudioStreamRandomizer> StreamRandomiser;
-
-	int32_t MagAmmo { 0 };
-
 protected:
+	steady_clock::time_point LastFired;
+	Ref<PackedScene> ProjectileScene { nullptr };
+	bool IsFiringBurst { false };
+	int32_t RemainingBurstCount = 0;
+
+	bool MarkedForDeletion { false };
+
 	static void _bind_methods();
+
 	virtual void PrimaryFireSingle(const Vector2 from, const Vector2 towards);
 	virtual void PrimaryFireBurst(const Vector2 from, const Vector2 towards);
 	virtual void StartReload();
 	virtual void FinishReload();
+
 	void AdjustFiringAngle(Node2D* node) const;
 	void ReloadTimerTimeout();
-
-	steady_clock::time_point LastFired;
-	Ref<PackedScene> ProjectileScene = nullptr;
-	bool IsFiringBurst = false;
-	int32_t RemainingBurstCount = 0;
-
-	bool MarkedForDeletion = false;
 
 private:
 

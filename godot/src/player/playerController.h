@@ -3,9 +3,9 @@
 #include "characterController.h"
 #include "ui/crosshair.h"
 #include "interactible/interactible.h"
+#include "items/invItemGun.h"
 
 #include <godot_cpp/classes/node2d.hpp>
-//#include <godot_cpp/classes/area2d.hpp>
 #include <godot_cpp/classes/sprite2d.hpp>
 #include <godot_cpp/classes/timer.hpp>
 #include <godot_cpp/classes/label.hpp>
@@ -36,24 +36,28 @@ public:
 	void SetPlayer(Player* player);
 	Player* GetPlayer() const;
 
-	// Updates HUD values, do not set MaxHealth directly
-	void SetMaxHealth(double max);
+	void OnGunEquipped(ItemGun* itemGun, int slot);
+	void OnGunUnequipped(int slot);
 
 	void OnHitByProjectile(Projectile* proj) override;
 	void TakeDamage(DamageInfo& di) override;
 
-	Node2D* GetCrosshair() const;
+	void UpdateHeldGunType(const Gun* heldGun);
+	void GiveStartGun(); // Only use this for starting pistol for a new character
+	void UpdateAmmoLabel();
 
-	void UpdateGunHeldType(const Gun& heldGun);
-
-	void GetStartGun(); // Only use this for starting pistol for a new character
 	// Sets the current gun in Controller. Is also responsible for calls to update HUD with the new gun.
 	void SetCurrentGunSlot(int32_t slot);
 	int32_t GetCurrentGunSlot() const;
-	void UpdateAmmoLabel();
 
 	void GiveExperience(double exp);
 	double GetExperience() const;
+
+	// Updates HUD values, do not set MaxHealth directly
+	void SetMaxHealth(double max);
+
+	void SetCrosshairVisibility(const bool visible) const;
+	Node2D* GetCrosshair() const;
 
 protected:
 	Player* ControlledPlayer { nullptr };

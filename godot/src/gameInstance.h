@@ -15,6 +15,8 @@ class RunManager;
 class Player;
 class Gun;
 class Enemy;
+class InventoryItem;
+class ItemGun;
 
 // https://stackoverflow.com/questions/1008019/how-do-you-implement-the-singleton-design-pattern
 
@@ -34,8 +36,12 @@ public:
 	void RegisterPlayer(Player* player);
 	Gun* GenerateNakedGun(int type, int level);
 	Gun* GenerateStarterPistol();
+	InventoryItem* GenerateStarterPistolItem();
 	void CopyEquippedGunToDrop(Gun* gun, Vector2 position);
 	Gun* CopyDroppedGunToEquip(GunDropped* dgun);
+
+	void CopyItemFromInventoryToDrop(InventoryItem* item, Vector2 position);
+	void CopyGunFromInventoryToDrop(ItemGun* igun, Vector2 position);
 
 	std::shared_ptr<GunDefinition> GenerateGunDef(int type, int level) const;
 	void GenerateAndDropGun(int type, int level, Node2D* parent);

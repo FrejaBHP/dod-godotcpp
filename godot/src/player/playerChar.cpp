@@ -60,7 +60,9 @@ PlayerController* Player::GetController() const {
 
 void Player::SetGunInSlot(int32_t slot, Gun* gun) {
 	GunSlots[slot] = gun;
-	gun->OwningCharacter = this;
+	if (gun) {
+		gun->OwningCharacter = this;
+	}
 }
 
 Gun* Player::GetGunInSlot(int32_t slot) const {
@@ -75,8 +77,8 @@ Gun* Player::GetCurrentGun() {
 	return CurrentGun;
 }
 
-void Player::SwitchToGunInSlot(int32_t slot) {
-	if (GunSlots[slot]) {
+void Player::SwitchToGunInSlot(int32_t slot, bool ignoreNullptr) {
+	if (GunSlots[slot] || ignoreNullptr) {
 		SetCurrentGun(GunSlots[slot]);
 		Controller->SetCurrentGunSlot(slot);
 	}

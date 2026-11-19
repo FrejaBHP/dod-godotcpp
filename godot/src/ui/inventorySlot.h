@@ -1,6 +1,8 @@
 #pragma once
 
 #include <godot_cpp/classes/panel_container.hpp>
+#include <godot_cpp/classes/input_event.hpp>
+#include <godot_cpp/classes/texture_rect.hpp>
 #include "items/inventoryItem.h"
 #include "shared/enums.h"
 
@@ -10,26 +12,30 @@ class InventorySlot : public PanelContainer {
 	GDCLASS(InventorySlot, PanelContainer)
 
 public:
-	InventoryItem* ContainedItem { nullptr };
+	int SlotNumber { -1 };
 
 	void _ready() override;
 
-	virtual Variant _get_drag_data(const Vector2& p_at_position) override;
-	virtual bool _can_drop_data(const Vector2& p_at_position, const Variant& p_data) const override;
-	virtual void _drop_data(const Vector2& p_at_position, const Variant& p_data) override;
+	virtual void _gui_input(const Ref<InputEvent>& p_event) override;
+
+	void OnMouseEntered();
+	void OnMouseExited();
+
+	void SetBGVisibility(const bool visible);
+	void SetContainedItem(InventoryItem* item);
+	InventoryItem* const GetContainedItem() const;
+	bool ContainsItem();
 
 	void SetSlotType(const int type);
 	int GetSlotType() const;
 
 protected:
-	
-
 	EInventorySlotType SlotType { EInventorySlotType::Inventory };
+	TextureRect* BGTexture { nullptr };
+
+	InventoryItem* ContainedItem { nullptr };
 
 	static void _bind_methods();
-
-	// Const to comply with _can_drop_data
-	bool GetDragEligibility(EInventorySlotType slotType, EInventoryItemType itemType) const;
 
 private:
 

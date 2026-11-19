@@ -35,7 +35,7 @@ public:
 	Gun* GetCurrentGun();
 
 	// If gun exists, sets CurrentGun and swaps the wielded gun to the one in the given slot
-	void SwitchToGunInSlot(int32_t slot);
+	void SwitchToGunInSlot(int32_t slot, bool ignoreNullptr);
 	
 protected:
 	PlayerController* Controller = nullptr;

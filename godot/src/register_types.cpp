@@ -35,6 +35,7 @@
 #include "ui/inventory.h"
 #include "ui/inventorySlot.h"
 #include "items/inventoryItem.h"
+#include "items/invItemGun.h"
 #include "ui/damageText.h"
 #include "ui/itemCard.h"
 #include "ui/crosshair.h"
@@ -70,6 +71,8 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level) {
 	GDREGISTER_RUNTIME_CLASS(InventorySlot);
 
 	GDREGISTER_RUNTIME_CLASS(InventoryItem);
+	GDREGISTER_RUNTIME_CLASS(ItemGun);
+
 	GDREGISTER_RUNTIME_CLASS(DamageText);
 	GDREGISTER_RUNTIME_CLASS(ItemCard);
 

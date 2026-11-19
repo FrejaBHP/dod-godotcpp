@@ -12,9 +12,10 @@ void ItemCard::_bind_methods() {
 void ItemCard::_ready() {
 	CardRows.reserve(8);
 
-	LName = get_node<Label>("VCardContainer/VHeadContainer/LName");
-	LGunType = get_node<RichTextLabel>("VCardContainer/VHeadContainer/LGunType");
-	LManufacturer = get_node<Label>("VCardContainer/VHeadContainer/LManufacturer");
+	LName = get_node<Label>("VCardContainer/HHeadContainer/VHeadContainer/LName");
+	LGunType = get_node<RichTextLabel>("VCardContainer/HHeadContainer/VHeadContainer/LGunType");
+	LManufacturer = get_node<Label>("VCardContainer/HHeadContainer/VHeadContainer/LManufacturer");
+	ManufacturerTexture = get_node<TextureRect>("VCardContainer/HHeadContainer/ManufacturerTexture");
 
 	CardRows[0] = get_node<HBoxContainer>("VCardContainer/VRowContainer/RDamage");
 	CardRows[1] = get_node<HBoxContainer>("VCardContainer/VRowContainer/RAccuracy");
@@ -65,6 +66,8 @@ void ItemCard::UseGunDef(const GunDefinition& gundef) {
 	LGunType->append_text(" " + GetGunSubTypeName(gundef.GunSubType));
 
 	LManufacturer->set_text(GetManufacturerName(gundef.Manufacturer));
+
+	ManufacturerTexture->set_texture(GetManufacturerIcon(gundef.Manufacturer));
 
 	if (gundef.ProjectileCount > 1) {
 		GetRowValueLabelByName(Damage)->set_text(vformat("%.0fx%.0d", gundef.Damage, gundef.ProjectileCount));

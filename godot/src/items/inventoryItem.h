@@ -10,17 +10,33 @@ class InventoryItem : public MarginContainer {
 	GDCLASS(InventoryItem, MarginContainer)
 
 public:
+	bool HasActiveCard { false };
+
 	virtual void _ready() override;
 
-	//virtual Variant _get_drag_data(const Vector2 &p_at_position) override;
+	virtual void OnPickedUp();
+
+	virtual void CreateItemCard();
+	virtual void DestroyItemCard();
+
+	TextureRect* const GetTextureRect() const;
 
 	void SetItemType(const int type);
 	int GetItemType() const;
 
+	void SetUsable(const bool usable);
+	bool GetUsable() const;
+
+	void SetDescription(const String desc);
+	String GetDescription() const;
+
 protected:
 	TextureRect* ItemTextureRect { nullptr };
+	Control* CardAnchor { nullptr };
 
 	EInventoryItemType ItemType { EInventoryItemType::Generic };
+	bool IsUsable { false };
+	String Description { "" };
 
 	static void _bind_methods();
 

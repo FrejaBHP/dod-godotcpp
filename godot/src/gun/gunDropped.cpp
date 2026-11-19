@@ -56,7 +56,7 @@ void GunDropped::SetupDroppedGun(std::shared_ptr<GunDefinition> gundef) {
 }
 
 void GunDropped::CreateItemCard() {
-	Ref<PackedScene> icScene = ResourceLoader::get_singleton()->load("res://scenes/ui/item_card.tscn");
+	Ref<PackedScene> icScene = ResourceLoader::get_singleton()->load("res://scenes/ui/item_card_gun.tscn");
 
 	if (icScene->can_instantiate()) {
 		ItemCard* card = static_cast<ItemCard*>(icScene->instantiate());
